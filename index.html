@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق المندوب - سفيرا لوجستيك (Safira Logistics)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        safira: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        },
+                        brand: {
+                            dark: '#0f172a',
+                            card: '#1e293b',
+                            accent: '#3b82f6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-cairo min-h-screen flex flex-col">
+
+    <!-- Top Navigation / Header with Courier Type Switcher -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="bg-safira-600 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-truck-fast text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wide text-white">سفيرا لوجستيك <span class="text-safira-500 text-sm font-semibold">| بوابة المندوب</span>[cite: 5]</h1>
+                    <p class="text-xs text-slate-400">نظام إدارة التوصيل والتحصيل الذكي[cite: 5]</p>
+                </div>
+            </div>
+
+            <!-- Courier Mode Switcher & Profile -->
+            <div class="flex items-center flex-wrap gap-3">
+                <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
+                    <span class="text-xs text-slate-400">نوع المندوب:[cite: 5]</span>
+                    <select id="courierTypeSelect" onchange="switchCourierType(this.value)" class="bg-slate-900 text-white text-sm font-bold px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-safira-500 border border-slate-700">
+                        <option value="governorates">مندوب المحافظات (Governorates)[cite: 5]</option>
+                        <option value="cairo">مندوب القاهرة الكبرى (Greater Cairo)[cite: 5]</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <div class="w-8 h-8 rounded-full bg-safira-500 text-white flex items-center justify-center font-bold text-sm" id="courierAvatar">م[cite: 5]</div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-white" id="courierNameDisplay">أحمد محمود (مندوب محافظات)[cite: 5]</p>
+                        <p class="text-[10px] text-safira-400" id="courierZoneDisplay">منطقة: الإسكندرية / البحيرة[cite: 5]</p>
+                    </div>
+                </div>
+
+                <button onclick="openNotificationModal()" class="relative p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition">
+                    <i class="fa-solid fa-bell text-lg"></i>
+                    <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0[cite: 5]</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Statistics Summary Bar -->
+    <section class="bg-white border-b border-slate-200 shadow-sm py-4 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-xs font-bold text-slate-400 mb-2 flex items-center justify-between">
+                <span><i class="fa-solid fa-chart-pie ml-1 text-safira-600"></i> ملخص حالات الأوردرات اليومية[cite: 5]</span>
+                <span id="lastUpdatedTime" class="text-[11px] text-slate-400">آخر تحديث: الآن[cite: 5]</span>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 text-center">
+                <div class="bg-slate-900 text-white p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-slate-300 font-semibold">إجمالي الأوردرات[cite: 5]</span>
+                    <span id="statTotal" class="text-2xl font-black mt-1 text-safira-400">5[cite: 5]</span>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-blue-700 font-semibold">جديد / معلق[cite: 5]</span>
+                    <span id="statNew" class="text-2xl font-black mt-1 text-blue-800">0[cite: 5]</span>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-emerald-700 font-semibold">تم التسليم[cite: 5]</span>
+                    <span id="statDelivered" class="text-2xl font-black mt-1 text-emerald-800">1[cite: 5]</span>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-amber-700 font-semibold">مرتجع[cite: 5]</span>
+                    <span id="statReturned" class="text-2xl font-black mt-1 text-amber-800">1[cite: 5]</span>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-orange-700 font-semibold">رفض بعد الوصول[cite: 5]</span>
+                    <span id="statRefusedArrival" class="text-2xl font-black mt-1 text-orange-800">1[cite: 5]</span>
+                </div>
+                <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-rose-700 font-semibold">رفض وتهرب[cite: 5]</span>
+                    <span id="statRefusedEscaped" class="text-2xl font-black mt-1 text-rose-800">1[cite: 5]</span>
+                </div>
+                <div class="bg-purple-50 border border-purple-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-purple-700 font-semibold">مؤجل[cite: 5]</span>
+                    <span id="statPostponed" class="text-2xl font-black mt-1 text-purple-800">1[cite: 5]</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Tabs -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 flex flex-col gap-6">
+        
+        <!-- Tab Navigation Bar -->
+        <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+            <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-slate-600 hover:bg-slate-100 shadow-sm border border-slate-200 flex items-center gap-2 transition">
+                <i class="fa-solid fa-box-open"></i> صفحة الأوردرات (<span id="ordersCountTab">5</span>)[cite: 5]
+            </button>
+            <button onclick="switchTab('warehouse')" id="tabBtn-warehouse" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-slate-600 hover:bg-slate-100 shadow-sm border border-slate-200 flex items-center gap-2 transition">
+                <i class="fa-solid fa-warehouse"></i> عمليات المخزن (<span id="warehouseCountTab">2</span>)[cite: 5]
+            </button>
+            <button onclick="switchTab('financials')" id="tabBtn-financials" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-safira-600 text-white shadow-md flex items-center gap-2 transition">
+                <i class="fa-solid fa-wallet"></i> الحسابات والمستحقات[cite: 5]
+            </button>
+        </div>
+
+        <!-- TAB 1: ORDERS MANAGEMENT -->
+        <div id="tabContent-orders" class="tab-content flex flex-col gap-4 hidden">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-3.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="orderSearchInput" oninput="filterOrders()" placeholder="بحث برقم البوليصة، اسم العميل، أو رقم الهاتف..." class="w-full pr-10 pl-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-safira-500">
+                    </div>
+                    <select id="orderStatusFilter" onchange="filterOrders()" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-semibold px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-safira-500">
+                        <option value="all">جميع الحالات[cite: 5]</option>
+                        <option value="جديد">جديد[cite: 5]</option>
+                        <option value="تم التسليم">تم التسليم[cite: 5]</option>
+                        <option value="مرتجع">مرتجع[cite: 5]</option>
+                        <option value="رفض بعد الوصول">رفض بعد الوصول[cite: 5]</option>
+                        <option value="رفض وتهرب">رفض وتهرب[cite: 5]</option>
+                        <option value="مؤجل">مؤجل[cite: 5]</option>
+                    </select>
+                </div>
+                <div class="text-xs text-slate-500 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-safira-600"></i>
+                    <span>تغيير الحالة إلى "مؤجل لأكثر من أسبوع" يحول الأوردر آلياً إلى "مرتجع".[cite: 5]</span>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-4">رقم البوليصة[cite: 5]</th>
+                                <th class="p-4">بيانات العميل[cite: 5]</th>
+                                <th class="p-4">المحافظة والعنوان[cite: 5]</th>
+                                <th class="p-4">مبلغ الأوردر[cite: 5]</th>
+                                <th class="p-4">حالة الأوردر[cite: 5]</th>
+                                <th class="p-4">ملاحظات المندوب[cite: 5]</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: WAREHOUSE OPERATIONS -->
+        <div id="tabContent-warehouse" class="tab-content flex flex-col gap-6 hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col gap-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-box-arrow-down text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">الأمر الأول: تأكيد استلام الأوردرات من المخزن[cite: 5]</h2>
+                            <p class="text-xs text-slate-500">الأوردرات الجديدة المرسلة من الإدارة لتأكيد استلامك لها وبدء العمل عليها[cite: 5]</p>
+                        </div>
+                    </div>
+                    <span id="pendingWarehouseReceiveCount" class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">0 بوليصة معلقة[cite: 5]</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="warehouseReceiveGrid"></div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col gap-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-box-arrow-up text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">الأمر الثاني: تسليم المرتجعات والرفض للمخزن[cite: 5]</h2>
+                            <p class="text-xs text-slate-500">تسليم الأوردرات المرتجعة أو المرفوضة لمخزن الشركة للمراجعة النهائية[cite: 5]</p>
+                        </div>
+                    </div>
+                    <span id="warehouseReturnsCountBadge" class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">0 أوردر[cite: 5]</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="warehouseReturnGrid"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: FINANCIALS & SETTLEMENTS -->
+        <div id="tabContent-financials" class="tab-content flex flex-col gap-6">
+            <div id="financialBannerContainer" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-md flex flex-col gap-6"></div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col gap-4">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-safira-600"></i> تفاصيل العمليات المالية المكتملة[cite: 5]
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-3">رقم البوليصة[cite: 5]</th>
+                                <th class="p-3">اسم العميل[cite: 5]</th>
+                                <th class="p-3">الحالة[cite: 5]</th>
+                                <th class="p-3">مبلغ الأوردر[cite: 5]</th>
+                                <th class="p-3">عمولة التوصيل للمندوب[cite: 5]</th>
+                                <th class="p-3">مستحقات الشركة[cite: 5]</th>
+                            </tr>
+                        </thead>
+                        <tbody id="financialTableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- POSTPONED DATE PICKER MODAL -->
+    <div id="postponeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-purple-600"></i> تحديد تاريخ التأجيل للأوردر[cite: 5]
+                </h3>
+                <button onclick="closePostponeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-500">اختر تاريخ التأجيل المطلوب. (ملاحظة: إذا تجاوز تاريخ التأجيل أسبوعاً كاملاً من اليوم، سيتحول الأوردر تلقائياً إلى <span class="text-red-600 font-bold">مرتجع</span>).[cite: 5]</p>
+            
+            <div class="flex flex-col gap-2">
+                <label class="text-xs font-bold text-slate-700">تاريخ التأجيل المستهدف:[cite: 5]</label>
+                <input type="date" id="postponeDateInput" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-purple-500 focus:outline-none">
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closePostponeModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200">إلغاء[cite: 5]</button>
+                <button onclick="confirmPostponeDate()" class="px-5 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold hover:bg-purple-700 shadow-sm">تأكيد الحفظ[cite: 5]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GOVERNORATES PAYMENT MODAL -->
+    <div id="govPaymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-dollar text-safira-600"></i> تسليم نقدية الشركة (مندوب المحافظات)[cite: 5]
+                </h3>
+                <button onclick="closeGovPaymentModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="flex flex-col gap-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block">اسم المسؤول / المستلم للإدارة:[cite: 5]</label>
+                    <select id="govReceiverSelect" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
+                        <option value="أستاذ محمود السيد (مدير الخزينة)">أستاذ محمود السيد (مدير الخزينة)[cite: 5]</option>
+                        <option value="أستاذة مريم أحمد (مشرفة الحسابات)">أستاذة مريم أحمد (مشرفة الحسابات)[cite: 5]</option>
+                        <option value="أستاذ خالد حسن (محاسب الإدارة)">أستاذ خالد حسن (محاسب الإدارة)[cite: 5]</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block">طريقة التحويل / التسليم:[cite: 5]</label>
+                    <select id="govPaymentMethod" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
+                        <option value="كاش">كاش (مباشر للمخزن/المسؤول)[cite: 5]</option>
+                        <option value="محفظة">محفظة إلكترونية[cite: 5]</option>
+                        <option value="انستا باي">انستا باي (InstaPay)[cite: 5]</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 flex justify-between items-center">
+                    <span>صافي مستحقات الشركة المحولة:[cite: 5]</span>
+                    <span id="modalGovCompanyDues" class="font-black text-safira-600 text-base">0 ج.م[cite: 5]</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeGovPaymentModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200">إلغاء[cite: 5]</button>
+                <button onclick="submitGovCompanyPayment()" class="px-5 py-2 bg-safira-600 text-white rounded-xl text-xs font-bold hover:bg-safira-700 shadow-sm">إرسال طلب التسليم للإدارة[cite: 5]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAIRO DUES REQUEST MODAL -->
+    <div id="cairoDuesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> طلب صرف المستحقات (مندوب القاهرة)[cite: 5]
+                </h3>
+                <button onclick="closeCairoDuesModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <p class="text-xs text-slate-500">مندوب القاهرة الكبرى يلتزم بتسليم إجمالي المبالغ المحصلة، ويحق له طلب صرف عمولته ومستحقاته عبر الخيارات أدناه:[cite: 5]</p>
+
+            <div class="flex flex-col gap-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block">اختر طريقة صرف المستحقات:[cite: 5]</label>
+                    <select id="cairoPayoutMethod" onchange="toggleCairoPayoutFields()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="انستا باي">انستا باي (InstaPay)[cite: 5]</option>
+                        <option value="محفظة">محفظة إلكترونية[cite: 5]</option>
+                        <option value="كاش">كاش (من المقر الرئيسي)[cite: 5]</option>
+                    </select>
+                </div>
+
+                <div id="cairoAccountFieldContainer">
+                    <label class="text-xs font-bold text-slate-700 mb-1 block" id="cairoAccountLabel">رقم الحساب / هاتف المحفظة / عنوان InstaPay:[cite: 5]</label>
+                    <input type="text" id="cairoTargetAccountInput" placeholder="مثال: 01012345678 أو username@instapay" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block">ملاحظات موجهة لخدمة العملاء والإدارة:[cite: 5]</label>
+                    <textarea id="cairoCustomerServiceNotes" rows="3" placeholder="اكتب أي استفسار أو ملاحظة خاصة بصرف المستحقات..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                </div>
+
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-xs text-blue-800 flex justify-between items-center">
+                    <span>إجمالي المستحقات المطلوبة صرفها:[cite: 5]</span>
+                    <span id="modalCairoDuesAmount" class="font-black text-blue-700 text-base">0 ج.م[cite: 5]</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeCairoDuesModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200">إلغاء[cite: 5]</button>
+                <button onclick="submitCairoDuesRequest()" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 shadow-sm">إرسال طلب الصرف[cite: 5]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS MODAL -->
+    <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-bell text-safira-600"></i> إشعارات وتنبيهات الإدارة[cite: 5]
+                </h3>
+                <button onclick="closeNotificationModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="flex flex-col gap-3 max-h-80 overflow-y-auto" id="notificationListContainer"></div>
+            <div class="text-center pt-2">
+                <button onclick="closeNotificationModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200 w-full">إغلاق[cite: 5]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2"></div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let currentCourierType = 'governorates'; 
+        let activeTab = 'orders';
+
+        let ordersData = [
+            {
+                id: 101,
+                waybill: "SF-90812",
+                customerName: "محمد عبد الله إبراهيم",
+                phone: "01098765432",
+                governorate: "الإسكندرية",
+                address: "45 شارع كورنيش البحر، سيدي بشر",
+                amount: 1450,
+                shippingFee: 65,
+                status: "جديد",
+                notes: "",
+                warehouseReceived: false,
+                warehouseReturnStatus: null,
+                postponeDate: null
+            },
+            {
+                id: 102,
+                waybill: "SF-90813",
+                customerName: "سارة محمد محمود",
+                phone: "01123456789",
+                governorate: "البحيرة",
+                address: "دمنهور، شارع الجمهورية بجوار البريد",
+                amount: 850,
+                shippingFee: 55,
+                status: "تم التسليم",
+                notes: "تم التسليم في الموعد المحدد",
+                warehouseReceived: true,
+                warehouseReturnStatus: null,
+                postponeDate: null
+            },
+            {
+                id: 103,
+                waybill: "SF-90814",
+                customerName: "محمود حسن علي",
+                phone: "01234567890",
+                governorate: "الغربية",
+                address: "طنطا، شارع الاستاد برج النور",
+                amount: 2200,
+                shippingFee: 75,
+                status: "مؤجل",
+                notes: "العميل طلب التأجيل لسفر طارئ",
+                warehouseReceived: true,
+                warehouseReturnStatus: null,
+                postponeDate: "2026-09-25"
+            },
+            {
+                id: 104,
+                waybill: "SF-90815",
+                customerName: "أحمد سمير فرج",
+                phone: "01511223344",
+                governorate: "الإسكندرية",
+                address: "المندرة، عمارات الأوقاف",
+                amount: 620,
+                shippingFee: 50,
+                status: "رفض بعد الوصول",
+                notes: "اختلاف بسيط في اللون",
+                warehouseReceived: true,
+                warehouseReturnStatus: 'rejected_by_warehouse',
+                postponeDate: null
+            },
+            {
+                id: 105,
+                waybill: "SF-90816",
+                customerName: "ياسمين رجب الدسوقي",
+                phone: "01055443322",
+                governorate: "بورسعيد",
+                address: "شارع 23 يوليو برج الأمل",
+                amount: 1100,
+                shippingFee: 70,
+                status: "مرتجع",
+                notes: "خطأ في العنوان",
+                warehouseReceived: true,
+                warehouseReturnStatus: 'pending_return',
+                postponeDate: null
+            }
+        ];
+
+        let notifications = [
+            { id: 1, title: "تنبيه إداري", message: "تم إسناد 2 أوردر جديد لك من مخزن الإسكندرية الرئيسي.", time: "منذ 10 دقائق" },
+            { id: 2, title: "رفض مرتجع من المخزن", message: "البوليصة SF-90815 تم رفض استلامها من المخزن ويجب مراجعة الحالة.", time: "منذ ساعة" }
+        ];
+
+        let activePostponeOrderId = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+        });
+
+        function renderAll() {
+            updateStats();
+            renderOrdersTable();
+            renderWarehouseOperations();
+            renderFinancials();
+            updateBadges();
+            renderNotifications();
+        }
+
+        function switchCourierType(type) {
+            currentCourierType = type;
+            const nameDisplay = document.getElementById('courierNameDisplay');
+            const zoneDisplay = document.getElementById('courierZoneDisplay');
+            const avatar = document.getElementById('courierAvatar');
+
+            if (type === 'governorates') {
+                nameDisplay.innerText = "أحمد محمود (مندوب محافظات)";
+                zoneDisplay.innerText = "منطقة: الإسكندرية / البحيرة / الغربية";
+                avatar.innerText = "مح";
+                showToast("تم التحويل إلى وضع: مندوب المحافظات", "success");
+            } else {
+                nameDisplay.innerText = "كريم الهواري (مندوب القاهرة الكبرى)";
+                zoneDisplay.innerText = "منطقة: القاهرة الكبرى / الجيزة";
+                avatar.innerText = "ق";
+                showToast("تم التحويل إلى وضع: مندوب القاهرة الكبرى", "success");
+            }
+            renderAll();
+        }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-slate-600 hover:bg-slate-100 shadow-sm border border-slate-200 flex items-center gap-2 transition";
+            });
+
+            document.getElementById(`tabContent-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tabBtn-${tabId}`).className = "tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-safira-600 text-white shadow-md flex items-center gap-2 transition";
+        }
+
+        function updateStats() {
+            document.getElementById('statTotal').innerText = ordersData.length;
+            document.getElementById('statNew').innerText = ordersData.filter(o => o.status === 'جديد').length;
+            document.getElementById('statDelivered').innerText = ordersData.filter(o => o.status === 'تم التسليم').length;
+            document.getElementById('statReturned').innerText = ordersData.filter(o => o.status === 'مرتجع').length;
+            document.getElementById('statRefusedArrival').innerText = ordersData.filter(o => o.status === 'رفض بعد الوصول').length;
+            document.getElementById('statRefusedEscaped').innerText = ordersData.filter(o => o.status === 'رفض وتهرب').length;
+            document.getElementById('statPostponed').innerText = ordersData.filter(o => o.status === 'مؤجل').length;
+            document.getElementById('ordersCountTab').innerText = ordersData.length;
+        }
+
+        function updateBadges() {
+            const pendingReceive = ordersData.filter(o => !o.warehouseReceived).length;
+            const returnsReady = ordersData.filter(o => (o.status === 'مرتجع' || o.status === 'رفض وتهرب' || o.status === 'رفض بعد الوصول') && o.warehouseReturnStatus !== 'returned_confirmed').length;
+            document.getElementById('warehouseCountTab').innerText = pendingReceive + returnsReady;
+            document.getElementById('notifBadge').innerText = notifications.length;
+        }
+
+        function renderOrdersTable() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+
+            const searchVal = document.getElementById('orderSearchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('orderStatusFilter').value;
+
+            const filtered = ordersData.filter(o => {
+                const matchSearch = o.waybill.toLowerCase().includes(searchVal) || o.customerName.toLowerCase().includes(searchVal) || o.phone.includes(searchVal);
+                const matchStatus = statusFilter === 'all' || o.status === statusFilter;
+                return matchSearch && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">لا توجد أوردرات مطابقة للبحث</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                
+                let statusBadgeClass = "bg-blue-100 text-blue-800";
+                if (order.status === 'تم التسليم') statusBadgeClass = "bg-emerald-100 text-emerald-800";
+                else if (order.status === 'مرتجع') statusBadgeClass = "bg-amber-100 text-amber-800";
+                else if (order.status === 'رفض بعد الوصول') statusBadgeClass = "bg-orange-100 text-orange-800";
+                else if (order.status === 'رفض وتهرب') statusBadgeClass = "bg-rose-100 text-rose-800";
+                else if (order.status === 'مؤجل') statusBadgeClass = "bg-purple-100 text-purple-800";
+
+                tr.innerHTML = `
+                    <td class="p-4 font-black text-slate-900">${order.waybill}</td>
+                    <td class="p-4">
+                        <div class="font-bold text-slate-800">${order.customerName}</div>
+                        <div class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-phone text-safira-600 ml-1"></i>${order.phone}</div>
+                    </td>
+                    <td class="p-4">
+                        <div class="font-bold text-slate-700">${order.governorate}</div>
+                        <div class="text-xs text-slate-400 truncate max-w-xs">${order.address}</div>
+                    </td>
+                    <td class="p-4 font-black text-slate-900">${order.amount.toLocaleString()} ج.م</td>
+                    <td class="p-4">
+                        <select onchange="handleOrderStatusChange(${order.id}, this.value)" class="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-safira-500 ${statusBadgeClass}">
+                            <option value="جديد" ${order.status === 'جديد' ? 'selected' : ''}>جديد</option>
+                            <option value="تم التسليم" ${order.status === 'تم التسليم' ? 'selected' : ''}>تم التسليم</option>
+                            <option value="مرتجع" ${order.status === 'مرتجع' ? 'selected' : ''}>مرتجع</option>
+                            <option value="رفض بعد الوصول" ${order.status === 'رفض بعد الوصول' ? 'selected' : ''}>رفض بعد الوصول</option>
+                            <option value="رفض وتهرب" ${order.status === 'رفض وتهرب' ? 'selected' : ''}>رفض وتهرب</option>
+                            <option value="مؤجل" ${order.status === 'مؤجل' ? 'selected' : ''}>مؤجل</option>
+                        </select>
+                        ${order.status === 'مؤجل' && order.postponeDate ? `<div class="text-[10px] text-purple-600 mt-1 font-bold">تأجيل إلى: ${order.postponeDate}</div>` : ''}
+                    </td>
+                    <td class="p-4">
+                        <textarea onblur="updateOrderNotes(${order.id}, this.value)" placeholder="اكتب ملاحظة..." class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-safira-500 focus:outline-none" rows="1">${order.notes}</textarea>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterOrders() {
+            renderOrdersTable();
+        }
+
+        function updateOrderNotes(orderId, notesVal) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (order) {
+                order.notes = notesVal;
+                showToast("تم حفظ الملاحظة بنجاح وتصل الآن لخدمة العملاء بالإدارة", "success");
+            }
+        }
+
+        function handleOrderStatusChange(orderId, newStatus) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+
+            if (newStatus === 'مؤجل') {
+                activePostponeOrderId = orderId;
+                openPostponeModal();
+            } else {
+                order.status = newStatus;
+                order.postponeDate = null;
+                showToast(`تم تحديث حالة البوليصة ${order.waybill} إلى (${newStatus})`, "success");
+                renderAll();
+            }
+        }
+
+        function openPostponeModal() {
+            document.getElementById('postponeModal').classList.remove('hidden');
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('postponeDateInput').value = todayStr;
+            document.getElementById('postponeDateInput').min = todayStr;
+        }
+
+        function closePostponeModal() {
+            document.getElementById('postponeModal').classList.add('hidden');
+            activePostponeOrderId = null;
+            renderOrdersTable();
+        }
+
+        function confirmPostponeDate() {
+            const dateVal = document.getElementById('postponeDateInput').value;
+            if (!dateVal) {
+                showToast("الرجاء اختيار تاريخ التأجيل", "error");
+                return;
+            }
+
+            const order = ordersData.find(o => o.id === activePostponeOrderId);
+            if (!order) return;
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const chosenDate = new Date(dateVal);
+            chosenDate.setHours(0,0,0,0);
+
+            const diffTime = chosenDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            order.postponeDate = dateVal;
+
+            if (diffDays > 7) {
+                order.status = 'مرتجع';
+                showToast(`تاريخ التأجيل يتجاوز أسبوعاً كاملاً (${diffDays} يوم). تم تحويل الأوردر آلياً إلى (مرتجع).`, "warning");
+            } else {
+                order.status = 'مؤجل';
+                showToast(`تم تأجيل الأوردر بنجاح حتى تاريخ ${dateVal}`, "success");
+            }
+
+            closePostponeModal();
+            renderAll();
+        }
+
+        function renderWarehouseOperations() {
+            const receiveContainer = document.getElementById('warehouseReceiveGrid');
+            receiveContainer.innerHTML = '';
+            
+            const pendingReceiveList = ordersData.filter(o => !o.warehouseReceived);
+            document.getElementById('pendingWarehouseReceiveCount').innerText = `${pendingReceiveList.length} بوليصة معلقة`;
+
+            if (pendingReceiveList.length === 0) {
+                receiveContainer.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 bg-slate-50 rounded-xl">لا توجد أوردرات معلقة بانتظار استلام المخزن</div>`;
+            } else {
+                pendingReceiveList.forEach(order => {
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between gap-3 shadow-sm";
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-black text-slate-900 text-sm">${order.waybill}</span>
+                            <span class="text-xs bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">${order.governorate}</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm">${order.customerName}</div>
+                            <div class="text-xs text-slate-500 font-semibold mt-0.5"><i class="fa-solid fa-phone text-safira-600 ml-1"></i>${order.phone}</div>
+                            <div class="text-xs font-black text-safira-600 mt-1">المبلغ المطلوب: ${order.amount.toLocaleString()} ج.م</div>
+                        </div>
+                        <button onclick="confirmWarehouseReceipt(${order.id})" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check-circle"></i> تأكيد الاستلام من المخزن
+                        </button>
+                    `;
+                    receiveContainer.appendChild(card);
+                });
+            }
+
+            const returnContainer = document.getElementById('warehouseReturnGrid');
+            returnContainer.innerHTML = '';
+
+            const returnList = ordersData.filter(o => (o.status === 'مرتجع' || o.status === 'رفض وتهرب' || o.status === 'رفض بعد الوصول') && o.warehouseReturnStatus !== 'returned_confirmed');
+            document.getElementById('warehouseReturnsCountBadge').innerText = `${returnList.length} أوردر`;
+
+            if (returnList.length === 0) {
+                returnContainer.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 bg-slate-50 rounded-xl">لا توجد مرتجعات أو أوردرات مرفوضة بحاجة لتسليم للمخزن حالياً</div>`;
+            } else {
+                returnList.forEach(order => {
+                    let statusAlertHTML = '';
+                    if (order.warehouseReturnStatus === 'rejected_by_warehouse') {
+                        statusAlertHTML = `<div class="bg-rose-50 border border-rose-200 text-rose-700 text-[11px] p-2 rounded-lg font-bold flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> تم رفض استلامه من المخزن (راجع الإدارة)</div>`;
+                    } else if (order.warehouseReturnStatus === 'pending_return') {
+                        statusAlertHTML = `<div class="bg-amber-50 border border-amber-200 text-amber-700 text-[11px] p-2 rounded-lg font-bold flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> في انتظار تأكيد استلام المخزن...</div>`;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between gap-3 shadow-sm";
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-black text-slate-900 text-sm">${order.waybill}</span>
+                            <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">${order.status}</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm">${order.customerName}</div>
+                            <div class="text-xs text-slate-500 font-semibold mt-0.5">${order.phone}</div>
+                        </div>
+                        ${statusAlertHTML}
+                        <button onclick="submitReturnToWarehouse(${order.id})" class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i> تم التسليم للمخزن
+                        </button>
+                    `;
+                    returnContainer.appendChild(card);
+                });
+            }
+        }
+
+        function confirmWarehouseReceipt(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (order) {
+                order.warehouseReceived = true;
+                showToast(`تم تأكيد استلام البوليصة ${order.waybill} من المخزن بنجاح`, "success");
+                renderAll();
+            }
+        }
+
+        function submitReturnToWarehouse(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (order) {
+                order.warehouseReturnStatus = 'pending_return';
+                showToast(`تم تسجيل تسليم البوليصة ${order.waybill} للمخزن. بانتظار التأكيد الإداري.`, "warning");
+                renderAll();
+            }
+        }
+
+        function renderFinancials() {
+            const bannerContainer = document.getElementById('financialBannerContainer');
+            const tableBody = document.getElementById('financialTableBody');
+            tableBody.innerHTML = '';
+
+            const deliveredOrders = ordersData.filter(o => o.status === 'تم التسليم');
+            const totalDeliveredAmount = deliveredOrders.reduce((sum, o) => sum + o.amount, 0);
+
+            const courierEligibleOrders = ordersData.filter(o => o.status === 'تم التسليم' || o.status === 'رفض بعد الوصول');
+            const courierDues = courierEligibleOrders.reduce((sum, o) => sum + (o.shippingFee || 50), 0);
+            
+            const netCompanyDues = totalDeliveredAmount - courierDues;
+
+            const financialRelevant = ordersData.filter(o => o.status === 'تم التسليم' || o.status === 'رفض بعد الوصول');
+            
+            if (financialRelevant.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">لا توجد عمليات مالية مكتملة حتى الآن</td></tr>`;
+            } else {
+                financialRelevant.forEach(order => {
+                    const fee = order.shippingFee || 50;
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50";
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold text-slate-900">${order.waybill}</td>
+                        <td class="p-3 font-semibold text-slate-700">${order.customerName}</td>
+                        <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${order.status === 'تم التسليم' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}">${order.status}</span></td>
+                        <td class="p-3 font-bold">${order.amount.toLocaleString()} ج.م</td>
+                        <td class="p-3 font-bold text-safira-600">${fee} ج.م</td>
+                        <td class="p-3 font-bold text-blue-600">${order.status === 'تم التسليم' ? (order.amount - fee).toLocaleString() + ' ج.م' : fee + ' ج.م (شحن مرفوع)'}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            if (currentCourierType === 'governorates') {
+                bannerContainer.innerHTML = `
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-700 pb-4">
+                        <div>
+                            <span class="bg-safira-500/20 text-safira-400 px-3 py-1 rounded-lg text-xs font-bold border border-safira-500/30">مندوب محافظات</span>
+                            <h2 class="text-xl font-black text-white mt-2">الحسابات الختامية وتوريد النقدية للشركة</h2>
+                        </div>
+                        <button onclick="openGovPaymentModal()" class="px-6 py-3 bg-safira-600 hover:bg-safira-700 text-white font-bold rounded-xl shadow-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-money-bill-transfer"></i> تسليم نقدية الشركة (إنشاء طلب توريد)
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                            <span class="text-xs text-slate-400">إجمالي مبلغ الأوردرات (المسلمة):</span>
+                            <div class="text-2xl font-black text-white mt-1">${totalDeliveredAmount.toLocaleString()} ج.م</div>
+                        </div>
+                        <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                            <span class="text-xs text-slate-400">مستحقات المندوب (عمولات التوصيل):</span>
+                            <div class="text-2xl font-black text-safira-400 mt-1">${courierDues.toLocaleString()} ج.م</div>
+                        </div>
+                        <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                            <span class="text-xs text-slate-400">صافي مستحقات الشركة (بعد الخصم):</span>
+                            <div class="text-2xl font-black text-blue-400 mt-1">${netCompanyDues.toLocaleString()} ج.م</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                bannerContainer.innerHTML = `
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-700 pb-4">
+                        <div>
+                            <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-lg text-xs font-bold border border-blue-500/30">مندوب القاهرة الكبرى</span>
+                            <h2 class="text-xl font-black text-white mt-2">حسابات القاهرة (توريد كامل المبلغ بدون خصم + طلب المستحقات)</h2>
+                        </div>
+                        <button onclick="openCairoDuesModal()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-hand-holding-dollar"></i> طلب صرف المستحقات
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                            <span class="text-xs text-slate-400">إجمالي مبلغ الأوردرات المطلوب توريدها كاملاً للشركة:</span>
+                            <div class="text-2xl font-black text-white mt-1">${totalDeliveredAmount.toLocaleString()} ج.م</div>
+                            <span class="text-[11px] text-amber-400 mt-1 block">يجب توريد كامل المبلغ للشركة دون استقطاع العمولات مباشرة.</span>
+                        </div>
+                        <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                            <span class="text-xs text-slate-400">إجمالي مستحقات وعمولات المندوب (للصرف بطلب منفصل):</span>
+                            <div class="text-2xl font-black text-safira-400 mt-1">${courierDues.toLocaleString()} ج.م</div>
+                            <span class="text-[11px] text-slate-400 mt-1 block">تنتظر تأكيد الصرف من الإدارة بعد تقديم الطلب.</span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function openGovPaymentModal() {
+            const deliveredOrders = ordersData.filter(o => o.status === 'تم التسليم');
+            const totalDeliveredAmount = deliveredOrders.reduce((sum, o) => sum + o.amount, 0);
+            const courierEligibleOrders = ordersData.filter(o => o.status === 'تم التسليم' || o.status === 'رفض بعد الوصول');
+            const courierDues = courierEligibleOrders.reduce((sum, o) => sum + (o.shippingFee || 50), 0);
+            const netCompanyDues = totalDeliveredAmount - courierDues;
+
+            document.getElementById('modalGovCompanyDues').innerText = netCompanyDues.toLocaleString() + " ج.م";
+            document.getElementById('govPaymentModal').classList.remove('hidden');
+        }
+
+        function closeGovPaymentModal() {
+            document.getElementById('govPaymentModal').classList.add('hidden');
+        }
+
+        function submitGovCompanyPayment() {
+            const receiver = document.getElementById('govReceiverSelect').value;
+            const method = document.getElementById('govPaymentMethod').value;
+            showToast(`تم إرسال طلب توريد نقدية الشركة إلى (${receiver}) عبر (${method}) بنجاح.`, "success");
+            closeGovPaymentModal();
+        }
+
+        function openCairoDuesModal() {
+            const courierEligibleOrders = ordersData.filter(o => o.status === 'تم التسليم' || o.status === 'رفض بعد الوصول');
+            const courierDues = courierEligibleOrders.reduce((sum, o) => sum + (o.shippingFee || 50), 0);
+            document.getElementById('modalCairoDuesAmount').innerText = courierDues.toLocaleString() + " ج.م";
+            document.getElementById('cairoDuesModal').classList.remove('hidden');
+        }
+
+        function closeCairoDuesModal() {
+            document.getElementById('cairoDuesModal').classList.add('hidden');
+        }
+
+        function toggleCairoPayoutFields() {
+            const method = document.getElementById('cairoPayoutMethod').value;
+            const input = document.getElementById('cairoTargetAccountInput');
+            if (method === 'كاش') {
+                input.value = "استلام من المقر الرئيسي";
+                input.disabled = true;
+            } else {
+                input.disabled = false;
+                input.value = "";
+                input.placeholder = method === 'محفظة' ? "أدخل رقم هاتف المحفظة" : "أدخل عنوان InstaPay";
+            }
+        }
+
+        function submitCairoDuesRequest() {
+            showToast("تم إرسال طلب صرف المستحقات إلى الإدارة بنجاح.", "success");
+            closeCairoDuesModal();
+        }
+
+        function openNotificationModal() {
+            document.getElementById('notificationModal').classList.remove('hidden');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notificationModal').classList.add('hidden');
+        }
+
+        function renderNotifications() {
+            const container = document.getElementById('notificationListContainer');
+            container.innerHTML = '';
+            notifications.forEach(n => {
+                container.innerHTML += `
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-1">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800 text-xs">${n.title}</span>
+                            <span class="text-[10px] text-slate-400">${n.time}</span>
+                        </div>
+                        <p class="text-xs text-slate-600">${n.message}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `p-3 rounded-xl text-white text-xs font-bold shadow-lg transition transform translate-y-2 ${type === 'success' ? 'bg-safira-600' : type === 'warning' ? 'bg-amber-600' : 'bg-red-600'}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
