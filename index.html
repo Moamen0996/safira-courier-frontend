@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق المندوب الذكي - سفيرا لوجستيك (Safira Logistics)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { cairo: ['Cairo', 'sans-serif'] },
+                    colors: {
+                        safira: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' },
+                        brand: { dark: '#0f172a', card: '#1e293b', accent: '#3b82f6' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-800 font-cairo min-h-screen flex flex-col">
+
+    <div id="loginScreen" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 flex flex-col gap-6 border border-slate-800">
+            <div class="text-center flex flex-col items-center gap-2">
+                <div class="w-16 h-16 bg-safira-600 text-white rounded-2xl shadow-lg flex items-center justify-center text-2xl font-black">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-900">سفيرا لوجستيك</h2>
+                <p class="text-xs text-slate-500">بوابة تسجيل دخول المندوبين (معتمدة من الإدارة)</p>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block">اسم المستخدم أو كود المندوب:</label>
+                    <input type="text" id="loginUsername" placeholder="مثال: ahmed_gov أو cairo_karim" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-safira-500 focus:outline-none font-semibold">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block">كلمة المرور الخاصة:</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-safira-500 focus:outline-none font-semibold">
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-800 flex items-start gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-600 mt-0.5"></i>
+                    <span>تنبيه: المحافظة ونوع الصلاحية يتم تحديدهما تلقائياً بناءً على ما أضافته الإدارة لحسابك ولا يمكن تعديلها يدوياً.</span>
+                </div>
+            </div>
+
+            <button onclick="handleLogin()" class="w-full py-4 bg-safira-600 hover:bg-safira-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول وبدء التتبع التلقائي
+            </button>
+            <div class="text-center">
+                <span class="text-[11px] text-slate-400">للاختبار السريع استخدم: <strong class="text-slate-600">ahmed_gov</strong> أو <strong class="text-slate-600">cairo_karim</strong> (كلمة المرور: 123456)</span>
+            </div>
+        </div>
+    </div>
+
+    <header id="mainHeader" class="bg-slate-900 text-white shadow-md sticky top-0 z-40 hidden border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="bg-safira-600 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-truck-fast text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wide text-white">سفيرا لوجستيك <span class="text-safira-500 text-sm font-semibold">| بوابة المندوب</span></h1>
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                        <span id="liveTrackingBadge" class="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold text-[10px] border border-emerald-500/30">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> التتبع الحي مفعل تلقائياً
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center flex-wrap gap-3">
+                <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 shadow-sm">
+                    <div class="w-9 h-9 rounded-full bg-safira-500 text-white flex items-center justify-center font-bold text-sm" id="courierAvatar">م</div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-white" id="courierNameDisplay">اسم المندوب</p>
+                        <p class="text-[11px] text-safira-400 font-semibold" id="courierZoneDisplay">محافظة التعيين: الإسكندرية</p>
+                    </div>
+                </div>
+
+                <button onclick="openNotificationModal()" class="relative p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition border border-slate-700">
+                    <i class="fa-solid fa-bell text-lg"></i>
+                    <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span>
+                </button>
+                <button onclick="handleLogout()" class="p-2.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-xl transition border border-rose-500/30 text-xs font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-power-off"></i> خروج
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <section id="statsSection" class="bg-white border-b border-slate-200 shadow-sm py-4 px-4 hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-xs font-bold text-slate-400 mb-2 flex items-center justify-between">
+                <span><i class="fa-solid fa-chart-pie ml-1 text-safira-600"></i> ملخص حالات الأوردرات اليومية</span>
+                <span id="lastUpdatedTime" class="text-[11px] text-slate-400">آخر تحديث: منذ ثوانٍ (موقع GPS متصل)</span>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 text-center">
+                <div class="bg-slate-900 text-white p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-slate-300 font-semibold">إجمالي الأوردرات</span>
+                    <span id="statTotal" class="text-2xl font-black mt-1 text-safira-400">5</span>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-blue-700 font-semibold">جديد / معلق</span>
+                    <span id="statNew" class="text-2xl font-black mt-1 text-blue-800">0</span>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-emerald-700 font-semibold">تم التسليم</span>
+                    <span id="statDelivered" class="text-2xl font-black mt-1 text-emerald-800">1</span>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-amber-700 font-semibold">مرتجع</span>
+                    <span id="statReturned" class="text-2xl font-black mt-1 text-amber-800">1</span>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-orange-700 font-semibold">رفض بعد الوصول</span>
+                    <span id="statRefusedArrival" class="text-2xl font-black mt-1 text-orange-800">1</span>
+                </div>
+                <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-rose-700 font-semibold">رفض وتهرب</span>
+                    <span id="statRefusedEscaped" class="text-2xl font-black mt-1 text-rose-800">1</span>
+                </div>
+                <div class="bg-purple-50 border border-purple-200 p-3 rounded-xl shadow-sm flex flex-col justify-center">
+                    <span class="text-xs text-purple-700 font-semibold">مؤجل</span>
+                    <span id="statPostponed" class="text-2xl font-black mt-1 text-purple-800">1</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main id="mainDashboard" class="flex-1 max-w-7xl w-full mx-auto p-4 flex flex-col gap-6 hidden">
+        
+        <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+            <button onclick="switchTab('orders')" id="tabBtn-orders" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-slate-600 hover:bg-slate-100 shadow-sm border border-slate-200 flex items-center gap-2 transition">
+                <i class="fa-solid fa-box-open"></i> صفحة الأوردرات (<span id="ordersCountTab">5</span>)
+            </button>
+            <button onclick="switchTab('warehouse')" id="tabBtn-warehouse" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-slate-600 hover:bg-slate-100 shadow-sm border border-slate-200 flex items-center gap-2 transition">
+                <i class="fa-solid fa-warehouse"></i> عمليات المخزن (<span id="warehouseCountTab">2</span>)
+            </button>
+            <button onclick="switchTab('financials')" id="tabBtn-financials" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-safira-600 text-white shadow-md flex items-center gap-2 transition">
+                <i class="fa-solid fa-wallet"></i> الحسابات والمستحقات
+            </button>
+        </div>
+
+        <!-- Orders Management Tab -->
+        <div id="tabContent-orders" class="tab-content flex flex-col gap-4 hidden">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-3.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="orderSearchInput" oninput="filterOrders()" placeholder="بحث برقم البوليصة، اسم العميل، أو رقم الهاتف..." class="w-full pr-10 pl-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-safira-500">
+                    </div>
+                    <select id="orderStatusFilter" onchange="filterOrders()" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-semibold px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-safira-500">
+                        <option value="all">جميع الحالات</option>
+                        <option value="جديد">جديد</option>
+                        <option value="تم التسليم">تم التسليم</option>
+                        <option value="مرتجع">مرتجع</option>
+                        <option value="رفض بعد الوصول">رفض بعد الوصول</option>
+                        <option value="رفض وتهرب">رفض وتهرب</option>
+                        <option value="مؤجل">مؤجل</option>
+                    </select>
+                </div>
+                <div class="text-xs text-slate-500 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-safira-600"></i>
+                    <span>تغيير الحالة إلى "مؤجل لأكثر من أسبوع" يحول الأوردر آلياً إلى "مرتجع".</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-4">رقم البوليصة</th>
+                                <th class="p-4">بيانات العميل</th>
+                                <th class="p-4">المحافظة والعنوان</th>
+                                <th class="p-4">مبلغ الأوردر</th>
+                                <th class="p-4">حالة الأوردر</th>
+                                <th class="p-4">ملاحظات المندوب</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouse Tab -->
+        <div id="tabContent-warehouse" class="tab-content flex flex-col gap-6 hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col gap-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-box-arrow-down text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">الأمر الأول: تأكيد استلام الأوردرات من المخزن</h2>
+                            <p class="text-xs text-slate-500">الأوردرات الجديدة المخصصة لمحافظتك من الإدارة</p>
+                        </div>
+                    </div>
+                    <span id="pendingWarehouseReceiveCount" class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">0 بوليصة</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="warehouseReceiveGrid"></div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col gap-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-box-arrow-up text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">الأمر الثاني: تسليم المرتجعات والرفض للمخزن</h2>
+                            <p class="text-xs text-slate-500">تسليم الأوردرات المرتجعة لمخزن المحافظة</p>
+                        </div>
+                    </div>
+                    <span id="warehouseReturnsCountBadge" class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">0 أوردر</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="warehouseReturnGrid"></div>
+            </div>
+        </div>
+
+        <!-- Financials Tab -->
+        <div id="tabContent-financials" class="tab-content flex flex-col gap-6">
+            <div id="financialBannerContainer" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-md flex flex-col gap-6"></div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col gap-4">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-safira-600"></i> تفاصيل العمليات المالية المكتملة
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-3">رقم البوليصة</th>
+                                <th class="p-3">اسم العميل</th>
+                                <th class="p-3">الحالة</th>
+                                <th class="p-3">مبلغ الأوردر</th>
+                                <th class="p-3">عمولة التوصيل</th>
+                                <th class="p-3">مستحقات الشركة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="financialTableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="postponeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-purple-600"></i> تحديد تاريخ التأجيل للأوردر
+                </h3>
+                <button onclick="closePostponeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-500">اختر تاريخ التأجيل المطلوب. إذا تجاوز التاريخ أسبوعاً سيتحول آلياً إلى <span class="text-red-600 font-bold">مرتجع</span>.</p>
+            <div class="flex flex-col gap-2">
+                <label class="text-xs font-bold text-slate-700">تاريخ التأجيل المستهدف:</label>
+                <input type="date" id="postponeDateInput" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-purple-500 focus:outline-none">
+            </div>
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closePostponeModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200">إلغاء</button>
+                <button onclick="confirmPostponeDate()" class="px-5 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold hover:bg-purple-700 shadow-sm">تأكيد الحفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="govPaymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-dollar text-safira-600"></i> تسليم نقدية الشركة (مندوب المحافظات)
+                </h3>
+                <button onclick="closeGovPaymentModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="flex flex-col gap-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block">اسم المسؤول / المستلم للإدارة:</label>
+                    <select id="govReceiverSelect" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
+                        <option value="أستاذ محمود السيد (مدير الخزينة)">أستاذ محمود السيد (مدير الخزينة)</option>
+                        <option value="أستاذة مريم أحمد (مشرفة الحسابات)">أستاذة مريم أحمد (مشرفة الحسابات)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block">طريقة التحويل / التسليم:</label>
+                    <select id="govPaymentMethod" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
+                        <option value="كاش">كاش (مباشر للمخزن)</option>
+                        <option value="محفظة">محفظة إلكترونية</option>
+                        <option value="انستا باي">انستا باي (InstaPay)</option>
+                    </select>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 flex justify-between items-center">
+                    <span>صافي مستحقات الشركة المحولة:</span>
+                    <span id="modalGovCompanyDues" class="font-black text-safira-600 text-base">0 ج.م</span>
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeGovPaymentModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200">إلغاء</button>
+                <button onclick="submitGovCompanyPayment()" class="px-5 py-2 bg-safira-600 text-white rounded-xl text-xs font-bold hover:bg-safira-700 shadow-sm">إرسال الطلب للإدارة</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cairoDuesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> طلب صرف المستحقات (مندوب القاهرة)
+                </h3>
+                <button onclick="closeCairoDuesModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-500">مندوب القاهرة يورد المبلغ كاملاً ويطلب صرف عمولته:</p>
+            <div class="flex flex-col gap-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block">طريقة الصرف:</label>
+                    <select id="cairoPayoutMethod" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="انستا باي">انستا باي (InstaPay)</option>
+                        <option value="محفظة">محفظة إلكترونية</option>
+                        <option value="كاش">كاش (من المقر الرئيسي)</option>
+                    </select>
+                </div>
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-xs text-blue-800 flex justify-between items-center">
+                    <span>إجمالي المستحقات المطلوبة:</span>
+                    <span id="modalCairoDuesAmount" class="font-black text-blue-700 text-base">0 ج.م</span>
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeCairoDuesModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200">إلغاء</button>
+                <button onclick="submitCairoDuesRequest()" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 shadow-sm">إرسال الطلب</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-bell text-safira-600"></i> إشعارات الإدارة
+                </h3>
+                <button onclick="closeNotificationModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="flex flex-col gap-3 max-h-80 overflow-y-auto" id="notificationListContainer"></div>
+            <div class="text-center pt-2">
+                <button onclick="closeNotificationModal()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200 w-full">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        // قاعدة بيانات المندوبين المسجلين من قِبل الإدارة (يستحيل تعديل المحافظة أو الهوية من المندوب)
+        const registeredCouriers = {
+            "ahmed_gov": {
+                name: "أحمد محمود",
+                type: "governorates",
+                zone: "الإسكندرية والبحيرة",
+                avatar: "مح",
+                password: "123"
+            },
+            "cairo_karim": {
+                name: "كريم الهواري",
+                type: "cairo",
+                zone: "القاهرة الكبرى الجيزة",
+                avatar: "ق",
+                password: "123"
+            }
+        };
+
+        let currentCourier = null;
+        let activeTab = 'orders';
+        let trackingInterval = null;
+
+        let ordersData = [
+            { id: 101, waybill: "SF-90812", customerName: "محمد عبد الله", phone: "01098765432", governorate: "الإسكندرية", address: "45 شارع كورنيش البحر", amount: 1450, shippingFee: 65, status: "جديد", notes: "", warehouseReceived: false, warehouseReturnStatus: null, postponeDate: null },
+            { id: 102, waybill: "SF-90813", customerName: "سارة محمد", phone: "01123456789", governorate: "البحيرة", address: "دمنهور الجمهورية", amount: 850, shippingFee: 55, status: "تم التسليم", notes: "تم التسليم بنجاح", warehouseReceived: true, warehouseReturnStatus: null, postponeDate: null },
+            { id: 103, waybill: "SF-90814", customerName: "محمود حسن", phone: "01234567890", governorate: "القاهرة", address: "مدينة نصر شارع مكرم عبيد", amount: 2200, shippingFee: 75, status: "مؤجل", notes: "سفر طارئ", warehouseReceived: true, warehouseReturnStatus: null, postponeDate: "2026-09-25" }
+        ];
+
+        let notifications = [
+            { id: 1, title: "تنبيه إداري", message: "تم إسناد أوردرات جديدة لمحافظتك.", time: "منذ 10 دقائق" }
+        ];
+
+        let activePostponeOrderId = null;
+
+        // دالة تسجيل الدخول
+        function handleLogin() {
+            const userBox = document.getElementById('loginUsername').value.trim();
+            const passBox = document.getElementById('loginPassword').value.trim();
+
+            if (!registeredCouriers[userBox] || registeredCouriers[userBox].password !== passBox) {
+                showToast("خطأ في اسم المستخدم أو كلمة المرور المسجلة من الإدارة", "error");
+                return;
+            }
+
+            currentCourier = registeredCouriers[userBox];
+            
+            // إخفاء شاشة الدخول وإظهار التطبيق
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('statsSection').classList.remove('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+
+            // ضبط البيانات تلقائياً دون أي خيار لتغييرها من المندوب
+            document.getElementById('courierNameDisplay').innerText = `${currentCourier.name} (${currentCourier.type === 'governorates' ? 'مندوب محافظات' : 'مندوب قاهرة'})`;
+            document.getElementById('courierZoneDisplay').innerText = `محافظة التعيين: ${currentCourier.zone}`;
+            document.getElementById('courierAvatar').innerText = currentCourier.avatar;
+
+            showToast(`مرحباً بك ${currentCourier.name}. تم تسجيل الدخول وتفعيل التتبع التلقائي بنجاح.`, "success");
+
+            // تشغيل نظام التتبُّع التلقائي فور فتح التطبيق
+            startAutomaticGPSHeartbeat();
+            renderAll();
+        }
+
+        function handleLogout() {
+            currentCourier = null;
+            if (trackingInterval) clearInterval(trackingInterval);
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainHeader').classList.add('hidden');
+            document.getElementById('statsSection').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.add('hidden');
+            showToast("تم تسجيل الخروج بنجاح", "warning");
+        }
+
+        // التتبع التلقائي فوراً بمجرد فتح التطبيق
+        function startAutomaticGPSHeartbeat() {
+            if ("geolocation" in navigator) {
+                // طلب الموقع فوراً عند الدخول
+                navigator.geolocation.getCurrentPosition(position => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    console.log(`[تتبع تلقائي GPS]: المندوب ${currentCourier?.name} في الإحداثيات (${lat}, ${lng})`);
+                }, error => {
+                    console.log("[تتبع GPS]: تم تشغيل محاكي التتبع التلقائي في الخلفية.");
+                }, { enableHighAccuracy: true });
+
+                // إرسال إحداثيات دورية كل 30 ثانية في الخلفية
+                trackingInterval = setInterval(() => {
+                    const mockLat = 30.0444 + (Math.random() - 0.5) * 0.01;
+                    const mockLng = 31.2357 + (Math.random() - 0.5) * 0.01;
+                    console.log(`[تحديث تتبع خادم الإدارة]: تم إرسال موقع المندوب (${mockLat.toFixed(4)}, ${mockLng.toFixed(4)}) تلقائياً بنجاح.`);
+                }, 30000);
+            }
+        }
+
+        function renderAll() {
+            updateStats();
+            renderOrdersTable();
+            renderWarehouseOperations();
+            renderFinancials();
+            updateBadges();
+            renderNotifications();
+        }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-slate-600 hover:bg-slate-100 shadow-sm border border-slate-200 flex items-center gap-2 transition";
+            });
+            document.getElementById(`tabContent-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tabBtn-${tabId}`).className = "tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-safira-600 text-white shadow-md flex items-center gap-2 transition";
+        }
+
+        function updateStats() {
+            document.getElementById('statTotal').innerText = ordersData.length;
+            document.getElementById('statNew').innerText = ordersData.filter(o => o.status === 'جديد').length;
+            document.getElementById('statDelivered').innerText = ordersData.filter(o => o.status === 'تم التسليم').length;
+            document.getElementById('statReturned').innerText = ordersData.filter(o => o.status === 'مرتجع').length;
+            document.getElementById('statRefusedArrival').innerText = ordersData.filter(o => o.status === 'رفض بعد الوصول').length;
+            document.getElementById('statRefusedEscaped').innerText = ordersData.filter(o => o.status === 'رفض وتهرب').length;
+            document.getElementById('statPostponed').innerText = ordersData.filter(o => o.status === 'مؤجل').length;
+            document.getElementById('ordersCountTab').innerText = ordersData.length;
+        }
+
+        function updateBadges() {
+            const pendingReceive = ordersData.filter(o => !o.warehouseReceived).length;
+            const returnsReady = ordersData.filter(o => (o.status === 'مرتجع' || o.status === 'رفض وتهرب' || o.status === 'رفض بعد الوصول') && o.warehouseReturnStatus !== 'returned_confirmed').length;
+            document.getElementById('warehouseCountTab').innerText = pendingReceive + returnsReady;
+            document.getElementById('notifBadge').innerText = notifications.length;
+        }
+
+        function renderOrdersTable() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+            const searchVal = document.getElementById('orderSearchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('orderStatusFilter').value;
+
+            const filtered = ordersData.filter(o => {
+                const matchSearch = o.waybill.toLowerCase().includes(searchVal) || o.customerName.toLowerCase().includes(searchVal);
+                const matchStatus = statusFilter === 'all' || o.status === statusFilter;
+                return matchSearch && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">لا توجد أوردرات مطابقة</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="p-4 font-black text-slate-900">${order.waybill}</td>
+                    <td class="p-4"><div class="font-bold text-slate-800">${order.customerName}</div><div class="text-xs text-slate-500">${order.phone}</div></td>
+                    <td class="p-4"><div class="font-bold text-slate-700">${order.governorate}</div><div class="text-xs text-slate-400">${order.address}</div></td>
+                    <td class="p-4 font-black text-slate-900">${order.amount.toLocaleString()} ج.م</td>
+                    <td class="p-4">
+                        <select onchange="handleOrderStatusChange(${order.id}, this.value)" class="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-300 bg-slate-50">
+                            <option value="جديد" ${order.status === 'جديد' ? 'selected' : ''}>جديد</option>
+                            <option value="تم التسليم" ${order.status === 'تم التسليم' ? 'selected' : ''}>تم التسليم</option>
+                            <option value="مرتجع" ${order.status === 'مرتجع' ? 'selected' : ''}>مرتجع</option>
+                            <option value="رفض بعد الوصول" ${order.status === 'رفض بعد الوصول' ? 'selected' : ''}>رفض بعد الوصول</option>
+                            <option value="مؤجل" ${order.status === 'مؤجل' ? 'selected' : ''}>مؤجل</option>
+                        </select>
+                    </td>
+                    <td class="p-4"><input type="text" value="${order.notes}" onblur="updateOrderNotes(${order.id}, this.value)" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterOrders() { renderOrdersTable(); }
+        function updateOrderNotes(id, val) { const o = ordersData.find(x => x.id === id); if(o) o.notes = val; showToast("تم حفظ الملاحظة وتحديثها للإدارة", "success"); }
+
+        function handleOrderStatusChange(orderId, newStatus) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+            if (newStatus === 'مؤجل') {
+                activePostponeOrderId = orderId;
+                document.getElementById('postponeModal').classList.remove('hidden');
+            } else {
+                order.status = newStatus;
+                showToast(`تم تحديث الحالة إلى (${newStatus})`, "success");
+                renderAll();
+            }
+        }
+
+        function closePostponeModal() { document.getElementById('postponeModal').classList.add('hidden'); }
+        function confirmPostponeDate() {
+            const dateVal = document.getElementById('postponeDateInput').value;
+            const order = ordersData.find(o => o.id === activePostponeOrderId);
+            if (order && dateVal) {
+                order.postponeDate = dateVal;
+                order.status = 'مؤجل';
+                showToast("تم تأجيل الأوردر بنجاح", "success");
+            }
+            closePostponeModal();
+            renderAll();
+        }
+
+        function renderWarehouseOperations() {
+            const receiveContainer = document.getElementById('warehouseReceiveGrid');
+            receiveContainer.innerHTML = `<div class="col-span-full p-4 text-center text-slate-400 bg-slate-50 rounded-xl">لا توجد بوليصات معلقة للاستلام</div>`;
+            
+            const returnContainer = document.getElementById('warehouseReturnGrid');
+            returnContainer.innerHTML = `<div class="col-span-full p-4 text-center text-slate-400 bg-slate-50 rounded-xl">لا توجد مرتجعات للمخزن</div>`;
+        }
+
+        function renderFinancials() {
+            const banner = document.getElementById('financialBannerContainer');
+            const tableBody = document.getElementById('financialTableBody');
+            tableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">لا توجد عمليات مالية بعد</td></tr>`;
+
+            if (currentCourier && currentCourier.type === 'governorates') {
+                banner.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                        <h2 class="text-lg font-black text-white">حسابات مندوب المحافظات</h2>
+                        <button onclick="document.getElementById('govPaymentModal').classList.remove('hidden')" class="px-5 py-2.5 bg-safira-600 text-white font-bold rounded-xl text-xs">تسليم نقدية الشركة</button>
+                    </div>
+                `;
+            } else {
+                banner.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                        <h2 class="text-lg font-black text-white">حسابات مندوب القاهرة الكبرى</h2>
+                        <button onclick="document.getElementById('cairoDuesModal').classList.remove('hidden')" class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs">طلب صرف المستحقات</button>
+                    </div>
+                `;
+            }
+        }
+
+        function closeGovPaymentModal() { document.getElementById('govPaymentModal').classList.add('hidden'); }
+        function submitGovCompanyPayment() { showToast("تم إرسال طلب توريد النقدية بنجاح", "success"); closeGovPaymentModal(); }
+        function closeCairoDuesModal() { document.getElementById('cairoDuesModal').classList.add('hidden'); }
+        function submitCairoDuesRequest() { showToast("تم إرسال طلب صرف المستحقات للإدارة", "success"); closeCairoDuesModal(); }
+        function openNotificationModal() { document.getElementById('notificationModal').classList.remove('hidden'); }
+        function closeNotificationModal() { document.getElementById('notificationModal').classList.add('hidden'); }
+        function renderNotifications() {
+            const container = document.getElementById('notificationListContainer');
+            container.innerHTML = notifications.map(n => `<div class="bg-slate-50 p-3 rounded-xl border text-xs"><b class="block text-slate-800">${n.title}</b>${n.message}</div>`).join('');
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `p-3 rounded-xl text-white text-xs font-bold shadow-lg ${type === 'success' ? 'bg-safira-600' : 'bg-amber-600'}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
