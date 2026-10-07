@@ -368,6 +368,7 @@
     <div id="toastContainer" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2"></div>
 
     <script>
+   
         // قاعدة بيانات المندوبين المسجلين من قِبل الإدارة (يستحيل تعديل المحافظة أو الهوية من المندوب)
         const registeredCouriers = {
             "ahmed_gov": {
@@ -618,6 +619,29 @@
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
+
+        <script>
+  // تحديد رابط السيرفر الأساسي على Railway والدالة مباشرة هنا لتجنب مشاكل المسارات
+  const API_BASE_URL = 'https://safira-logistic-production.up.railway.app/';
+  
+  async function apiRequest(endpoint, options = {}) {
+      try {
+          const url = `${API_BASE_URL}${endpoint}`;
+          const defaultHeaders = { 'Content-Type': 'application/json' };
+          const config = {
+              ...options,
+              headers: { ...defaultHeaders, ...(options.headers || {}) }
+          };
+          const response = await fetch(url, config);
+          return await response.json();
+      } catch (error) {
+          console.error('API Request Error:', error);
+          throw error;
+      }
+  }
+</script>
+
+<script src="./App.js"></script>
     </script>
 </body>
 </html>
