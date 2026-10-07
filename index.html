@@ -367,9 +367,9 @@
 
     <div id="toastContainer" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2"></div>
 
+    <!-- كود الجافاسكريبت المجمع والمنظم -->
     <script>
-   
-        // قاعدة بيانات المندوبين المسجلين من قِبل الإدارة (يستحيل تعديل المحافظة أو الهوية من المندوب)
+        // قاعدة بيانات المندوبين المسجلين من قِبل الإدارة
         const registeredCouriers = {
             "ahmed_gov": {
                 name: "أحمد محمود",
@@ -403,6 +403,25 @@
 
         let activePostponeOrderId = null;
 
+        // دالة الاتصال بالسيرفر الأساسي على Railway
+        const API_BASE_URL = 'https://safira-logistic-production.up.railway.app/';
+        
+        async function apiRequest(endpoint, options = {}) {
+            try {
+                const url = `${API_BASE_URL}${endpoint}`;
+                const defaultHeaders = { 'Content-Type': 'application/json' };
+                const config = {
+                    ...options,
+                    headers: { ...defaultHeaders, ...(options.headers || {}) }
+                };
+                const response = await fetch(url, config);
+                return await response.json();
+            } catch (error) {
+                console.error('API Request Error:', error);
+                throw error;
+            }
+        }
+
         // دالة تسجيل الدخول
         function handleLogin() {
             const userBox = document.getElementById('loginUsername').value.trim();
@@ -415,20 +434,17 @@
 
             currentCourier = registeredCouriers[userBox];
             
-            // إخفاء شاشة الدخول وإظهار التطبيق
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainHeader').classList.remove('hidden');
             document.getElementById('statsSection').classList.remove('hidden');
             document.getElementById('mainDashboard').classList.remove('hidden');
 
-            // ضبط البيانات تلقائياً دون أي خيار لتغييرها من المندوب
             document.getElementById('courierNameDisplay').innerText = `${currentCourier.name} (${currentCourier.type === 'governorates' ? 'مندوب محافظات' : 'مندوب قاهرة'})`;
             document.getElementById('courierZoneDisplay').innerText = `محافظة التعيين: ${currentCourier.zone}`;
             document.getElementById('courierAvatar').innerText = currentCourier.avatar;
 
             showToast(`مرحباً بك ${currentCourier.name}. تم تسجيل الدخول وتفعيل التتبع التلقائي بنجاح.`, "success");
 
-            // تشغيل نظام التتبُّع التلقائي فور فتح التطبيق
             startAutomaticGPSHeartbeat();
             renderAll();
         }
@@ -443,10 +459,8 @@
             showToast("تم تسجيل الخروج بنجاح", "warning");
         }
 
-        // التتبع التلقائي فوراً بمجرد فتح التطبيق
         function startAutomaticGPSHeartbeat() {
             if ("geolocation" in navigator) {
-                // طلب الموقع فوراً عند الدخول
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
@@ -455,7 +469,6 @@
                     console.log("[تتبع GPS]: تم تشغيل محاكي التتبع التلقائي في الخلفية.");
                 }, { enableHighAccuracy: true });
 
-                // إرسال إحداثيات دورية كل 30 ثانية في الخلفية
                 trackingInterval = setInterval(() => {
                     const mockLat = 30.0444 + (Math.random() - 0.5) * 0.01;
                     const mockLng = 31.2357 + (Math.random() - 0.5) * 0.01;
@@ -619,29 +632,6 @@
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
-
-        <script>
-  // تحديد رابط السيرفر الأساسي على Railway والدالة مباشرة هنا لتجنب مشاكل المسارات
-  const API_BASE_URL = 'https://safira-logistic-production.up.railway.app/';
-  
-  async function apiRequest(endpoint, options = {}) {
-      try {
-          const url = `${API_BASE_URL}${endpoint}`;
-          const defaultHeaders = { 'Content-Type': 'application/json' };
-          const config = {
-              ...options,
-              headers: { ...defaultHeaders, ...(options.headers || {}) }
-          };
-          const response = await fetch(url, config);
-          return await response.json();
-      } catch (error) {
-          console.error('API Request Error:', error);
-          throw error;
-      }
-  }
-</script>
-
-<script src="./App.js"></script>
     </script>
 </body>
 </html>
