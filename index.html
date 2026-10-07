@@ -406,21 +406,21 @@
         // دالة الاتصال بالسيرفر الأساسي على Railway
         const API_BASE_URL = 'https://safira-logistic-production.up.railway.app/';
         
-        async function apiRequest(endpoint, options = {}) {
-            try {
-                const url = `${API_BASE_URL}${endpoint}`;
-                const defaultHeaders = { 'Content-Type': 'application/json' };
-                const config = {
-                    ...options,
-                    headers: { ...defaultHeaders, ...(options.headers || {}) }
-                };
-                const response = await fetch(url, config);
-                return await response.json();
-            } catch (error) {
-                console.error('API Request Error:', error);
-                throw error;
-            }
-        }
+     window.apiRequest = async function(endpoint, options = {}) {
+    try {
+        const url = `${API_BASE_URL}${endpoint}`;
+        const defaultHeaders = { 'Content-Type': 'application/json' };
+        const config = {
+            ...options,
+            headers: { ...defaultHeaders, ...(options.headers || {}) }
+        };
+        const response = await fetch(url, config);
+        return await response.json();
+    } catch (error) {
+        console.error('API Request Error:', error);
+        throw error;
+    }
+}
 
         // دالة تسجيل الدخول
         function handleLogin() {
