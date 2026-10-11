@@ -283,12 +283,11 @@
             </div>
         </div>
     </div>
-
-    <div id="govPaymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+<div id="govPaymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-hand-holding-dollar text-safira-600"></i> تسليم نقدية الشركة (مندوب المحافظات)
+                    <i class="fa-solid fa-hand-holding-dollar text-safira-600"></i> تسليم نقدية الشركة (توزيع المبالغ)
                 </h3>
                 <button onclick="closeGovPaymentModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
@@ -300,17 +299,31 @@
                         <option value="أستاذة مريم أحمد (مشرفة الحسابات)">أستاذة مريم أحمد (مشرفة الحسابات)</option>
                     </select>
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-700 mb-1 block">طريقة التحويل / التسليم:</label>
-                    <select id="govPaymentMethod" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
-                        <option value="كاش">كاش (مباشر للمخزن)</option>
-                        <option value="محفظة">محفظة إلكترونية</option>
-                        <option value="انستا باي">انستا باي (InstaPay)</option>
-                    </select>
+                
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-700 flex justify-between items-center font-bold">
+                    <span>إجمالي النقدية الواجب توريدها:</span>
+                    <span id="modalGovTotalDues" class="text-safira-600 text-base">2,500 ج.م</span>
                 </div>
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 flex justify-between items-center">
-                    <span>صافي مستحقات الشركة المحولة:</span>
-                    <span id="modalGovCompanyDues" class="font-black text-safira-600 text-base">0 ج.م</span>
+
+                <!-- حقول إدخال وتوزيع المبالغ -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-600 mb-1 block">مبلغ كاش:</label>
+                        <input type="number" id="splitCashAmount" placeholder="0" oninput="calculateSplitTotal()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-600 mb-1 block">مبلغ محفظة:</label>
+                        <input type="number" id="splitWalletAmount" placeholder="0" oninput="calculateSplitTotal()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-600 mb-1 block">مبلغ انستا باي:</label>
+                        <input type="number" id="splitInstapayAmount" placeholder="0" oninput="calculateSplitTotal()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="text-[11px] text-slate-500 flex justify-between px-1">
+                    <span>المجموع الموزع: <strong id="splitSumDisplay" class="text-slate-800">0 ج.م</strong></span>
+                    <span id="splitValidationMsg" class="text-amber-600 font-bold"></span>
                 </div>
             </div>
             <div class="flex items-center justify-end gap-3 pt-2">
@@ -319,7 +332,6 @@
             </div>
         </div>
     </div>
-
     <div id="cairoDuesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -614,6 +626,7 @@
         }
 
         // --- القيود الصارمة لطلبات الصرف والتسويات للمندوب ---
+const requiredGovTotal = 2500; // الإجمالي الافتراضي أو المحسوب للمندوب
 
         function openGovPaymentModal() {
             let cPayouts = JSON.parse(localStorage.getItem('safira_c_payouts')) || [];
@@ -624,16 +637,42 @@
                 return;
             }
 
-            const availableAmount = 2500; // يتم حسابه من الرصيد الفعلي للمندوب
-            if (availableAmount <= 0) {
-                showToast("عذراً، لا توجد مبالغ مالية متاحة للتسوية حالياً (الرصيد <= 0)", "error");
+            if (requiredGovTotal <= 0) {
+                showToast("عذراً، لا توجد مبالغ مالية متاحة للتسوية حالياً!", "error");
                 return;
             }
 
-            document.getElementById('modalGovCompanyDues').innerText = availableAmount.toLocaleString() + ' ج.م';
+            // تصفير الحقول عند الفتح
+            document.getElementById('splitCashAmount').value = '';
+            document.getElementById('splitWalletAmount').value = '';
+            document.getElementById('splitInstapayAmount').value = '';
+            document.getElementById('modalGovTotalDues').innerText = requiredGovTotal.toLocaleString() + ' ج.م';
+            document.getElementById('splitSumDisplay').innerText = '0 ج.م';
+            document.getElementById('splitValidationMsg').innerText = '';
+
             document.getElementById('govPaymentModal').classList.remove('hidden');
         }
 
+        // دالة حساب مجموع المبالغ المقسمة لتنبيه المندوب
+        function calculateSplitTotal() {
+            const cash = Number(document.getElementById('splitCashAmount').value) || 0;
+            const wallet = Number(document.getElementById('splitWalletAmount').value) || 0;
+            const instapay = Number(document.getElementById('splitInstapayAmount').value) || 0;
+            
+            const totalSplit = cash + wallet + instapay;
+            document.getElementById('splitSumDisplay').innerText = totalSplit.toLocaleString() + ' ج.م';
+
+            const msgEl = document.getElementById('splitValidationMsg');
+            if (totalSplit !== requiredGovTotal) {
+                msgEl.innerText = `المتبقي: ${(requiredGovTotal - totalSplit).toLocaleString()} ج.م`;
+                msgEl.className = "text-amber-600 font-bold";
+            } else {
+                msgEl.innerText = "متطابق تماماً ✓";
+                msgEl.className = "text-emerald-600 font-bold";
+            }
+        }
+
+        // إرسال تسوية مندوب المحافظات مع تفاصيل التقسيم
         function submitGovCompanyPayment() {
             let cPayouts = JSON.parse(localStorage.getItem('safira_c_payouts')) || [];
             if (cPayouts.some(p => p.courierId === currentCourier.name)) {
@@ -642,88 +681,32 @@
                 return;
             }
 
-            const amount = 2500;
+            const cash = Number(document.getElementById('splitCashAmount').value) || 0;
+            const wallet = Number(document.getElementById('splitWalletAmount').value) || 0;
+            const instapay = Number(document.getElementById('splitInstapayAmount').value) || 0;
+            const totalSplit = cash + wallet + instapay;
+
+            if (totalSplit !== requiredGovTotal) {
+                showToast(`عذراً، مجموع المبالغ المقسمة (${totalSplit} ج.م) لا يتطابق مع الإجمالي الواجب توريده (${requiredGovTotal} ج.م)`, "error");
+                return;
+            }
+
             const receiver = document.getElementById('govReceiverSelect').value;
-            const method = document.getElementById('govPaymentMethod').value;
 
             cPayouts.push({
                 id: 'CP-' + Date.now(),
                 courierId: currentCourier.name,
                 name: currentCourier.name,
                 zone: currentCourier.zone,
-                amount: amount,
-                method: method,
+                amount: requiredGovTotal,
+                breakdown: { cash, wallet, instapay }, // تفاصيل التقسيم لتظهر للإدارة
                 receiver: receiver,
                 date: new Date().toLocaleString()
             });
 
             localStorage.setItem('safira_c_payouts', JSON.stringify(cPayouts));
-            showToast("تم إرسال طلب توريد النقدية بنجاح إلى الإدارة!", "success");
+            showToast("تم إرسال طلب توريد النقدية المقسمة بنجاح إلى الإدارة!", "success");
             closeGovPaymentModal();
-        }
-
-        function openCairoDuesModal() {
-            let mPayouts = JSON.parse(localStorage.getItem('safira_m_payouts')) || [];
-            const existing = mPayouts.find(p => p.merchantId === currentCourier.name);
-
-            if (existing) {
-                showToast("عذراً، لديك طلب مستحقات معلق بالفعل بانتظار الاعتماد من قسم الحسابات!", "error");
-                return;
-            }
-
-            const availableDues = 1800; // المستحقات الفعلية المتاحة للمندوب
-            if (availableDues <= 0) {
-                showToast("عذراً، لا توجد مستحقات مالية متاحة للصرف حالياً (الرصيد <= 0)", "error");
-                return;
-            }
-
-            document.getElementById('modalCairoDuesAmount').innerText = availableDues.toLocaleString() + ' ج.م';
-            document.getElementById('cairoDuesModal').classList.remove('hidden');
-        }
-
-        function submitCairoDuesRequest() {
-            let mPayouts = JSON.parse(localStorage.getItem('safira_m_payouts')) || [];
-            if (mPayouts.some(p => p.merchantId === currentCourier.name)) {
-                showToast("عذراً، يوجد طلب معلق بالفعل!", "error");
-                closeCairoDuesModal();
-                return;
-            }
-
-            const amount = 1800;
-            const method = document.getElementById('cairoPayoutMethod').value;
-
-            mPayouts.push({
-                id: 'MP-' + Date.now(),
-                merchantId: currentCourier.name,
-                name: currentCourier.name,
-                zone: currentCourier.zone,
-                amount: amount,
-                method: method,
-                date: new Date().toLocaleString()
-            });
-
-            localStorage.setItem('safira_m_payouts', JSON.stringify(mPayouts));
-            showToast("تم إرسال طلب صرف المستحقات للإدارة بنجاح!", "success");
-            closeCairoDuesModal();
-        }
-
-        function closeGovPaymentModal() { document.getElementById('govPaymentModal').classList.add('hidden'); }
-        function closeCairoDuesModal() { document.getElementById('cairoDuesModal').classList.add('hidden'); }
-        function openNotificationModal() { document.getElementById('notificationModal').classList.remove('hidden'); }
-        function closeNotificationModal() { document.getElementById('notificationModal').classList.add('hidden'); }
-        
-        function renderNotifications() {
-            const container = document.getElementById('notificationListContainer');
-            container.innerHTML = notifications.map(n => `<div class="bg-slate-50 p-3 rounded-xl border text-xs"><b class="block text-slate-800">${n.title}</b>${n.message}</div>`).join('');
-        }
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `p-3 rounded-xl text-white text-xs font-bold shadow-lg ${type === 'success' ? 'bg-safira-600' : 'bg-amber-600'}`;
-            toast.innerText = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
         }
     </script>
 </body>
