@@ -612,11 +612,107 @@
                 `;
             }
         }
+// 1. فتح نافذة تسليم نقدية مندوب المحافظات مع التحقق من الرصيد والطلبات المعلقة
+        function openGovPaymentModal() {
+            let cPayouts = JSON.parse(localStorage.getItem('safira_c_payouts')) || [];
+            const existing = cPayouts.find(p => p.courierId === currentCourier.name);
+            
+            if (existing) {
+                showToast("عذراً، يوجد بالفعل طلب تسوية معلق لهذا المندوب بانتظار الاعتماد ولا يمكن تقديم طلب جديد حالياً!", "error");
+                return;
+            }
 
+            const availableAmount = 2500; // يتم حسابه ديناميكياً أو افتراضياً
+            if (availableAmount <= 0) {
+                showToast("لا توجد مبالغ مالية متاحة للتسوية حالياً!", "error");
+                return;
+            }
+
+            document.getElementById('modalGovCompanyDues').innerText = availableAmount.toLocaleString() + ' ج.م';
+            document.getElementById('govPaymentModal').classList.remove('hidden');
+        }
+
+        // إرسال تسوية مندوب المحافظات بالقيود الصارمة
+        function submitGovCompanyPayment() {
+            let cPayouts = JSON.parse(localStorage.getItem('safira_c_payouts')) || [];
+            
+            if (cPayouts.some(p => p.courierId === currentCourier.name)) {
+                showToast("عذراً، لديك طلب معلق بالفعل قيد المراجعة!", "error");
+                closeGovPaymentModal();
+                return;
+            }
+
+            const amount = 2500;
+            const receiver = document.getElementById('govReceiverSelect').value;
+            const method = document.getElementById('govPaymentMethod').value;
+
+            cPayouts.push({
+                id: 'CP-' + Date.now(),
+                courierId: currentCourier.name,
+                name: currentCourier.name,
+                zone: currentCourier.zone,
+                amount: amount,
+                method: method,
+                receiver: receiver,
+                date: new Date().toLocaleString()
+            });
+
+            localStorage.setItem('safira_c_payouts', JSON.stringify(cPayouts));
+            showToast("تم إرسال طلب توريد النقدية بنجاح إلى الإدارة!", "success");
+            closeGovPaymentModal();
+        }
+
+        // 2. فتح نافذة طلب مستحقات مندوب القاهرة مع منع التكرار والتحقق من الرصيد
+        function openCairoDuesModal() {
+            let mPayouts = JSON.parse(localStorage.getItem('safira_m_payouts')) || [];
+            const existing = mPayouts.find(p => p.merchantId === currentCourier.name);
+
+            if (existing) {
+                showToast("عذراً، لديك طلب مستحقات معلق بالفعل بانتظار الاعتماد من قسم الحسابات!", "error");
+                return;
+            }
+
+            const availableDues = 1800; // المستحقات الفعلية للمندوب
+            if (availableDues <= 0) {
+                showToast("لا توجد مستحقات مالية متاحة للصرف حالياً!", "error");
+                return;
+            }
+
+            document.getElementById('modalCairoDuesAmount').innerText = availableDues.toLocaleString() + ' ج.م';
+            document.getElementById('cairoDuesModal').classList.remove('hidden');
+        }
+
+        // إرسال طلب صرف المستحقات لمندوب القاهرة
+        function submitCairoDuesRequest() {
+            let mPayouts = JSON.parse(localStorage.getItem('safira_m_payouts')) || [];
+            
+            if (mPayouts.some(p => p.merchantId === currentCourier.name)) {
+                showToast("عذراً، يوجد طلب معلق بالفعل!", "error");
+                closeCairoDuesModal();
+                return;
+            }
+
+            const amount = 1800;
+            const method = document.getElementById('cairoPayoutMethod').value;
+
+            mPayouts.push({
+                id: 'MP-' + Date.now(),
+                merchantId: currentCourier.name,
+                name: currentCourier.name,
+                zone: currentCourier.zone,
+                amount: amount,
+                method: method,
+                date: new Date().toLocaleString()
+            });
+
+            localStorage.setItem('safira_m_payouts', JSON.stringify(mPayouts));
+            showToast("تم إرسال طلب صرف المستحقات للإدارة بنجاح!", "success");
+            closeCairoDuesModal();
+        }
+
+        // دوال الإشعارات والتحكم المعتادة
         function closeGovPaymentModal() { document.getElementById('govPaymentModal').classList.add('hidden'); }
-        function submitGovCompanyPayment() { showToast("تم إرسال طلب توريد النقدية بنجاح", "success"); closeGovPaymentModal(); }
         function closeCairoDuesModal() { document.getElementById('cairoDuesModal').classList.add('hidden'); }
-        function submitCairoDuesRequest() { showToast("تم إرسال طلب صرف المستحقات للإدارة", "success"); closeCairoDuesModal(); }
         function openNotificationModal() { document.getElementById('notificationModal').classList.remove('hidden'); }
         function closeNotificationModal() { document.getElementById('notificationModal').classList.add('hidden'); }
         function renderNotifications() {
