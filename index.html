@@ -406,21 +406,21 @@
         // دالة الاتصال بالسيرفر الأساسي على Railway
         const API_BASE_URL = 'https://safira-logistic-production.up.railway.app/';
         
-     window.apiRequest = async function(endpoint, options = {}) {
-    try {
-        const url = `${API_BASE_URL}${endpoint}`;
-        const defaultHeaders = { 'Content-Type': 'application/json' };
-        const config = {
-            ...options,
-            headers: { ...defaultHeaders, ...(options.headers || {}) }
-        };
-        const response = await fetch(url, config);
-        return await response.json();
-    } catch (error) {
-        console.error('API Request Error:', error);
-        throw error;
-    }
-}
+        window.apiRequest = async function(endpoint, options = {}) {
+            try {
+                const url = `${API_BASE_URL}${endpoint}`;
+                const defaultHeaders = { 'Content-Type': 'application/json' };
+                const config = {
+                    ...options,
+                    headers: { ...defaultHeaders, ...(options.headers || {}) }
+                };
+                const response = await fetch(url, config);
+                return await response.json();
+            } catch (error) {
+                console.error('API Request Error:', error);
+                throw error;
+            }
+        }
 
         // دالة تسجيل الدخول
         function handleLogin() {
@@ -600,31 +600,33 @@
                 banner.innerHTML = `
                     <div class="flex justify-between items-center border-b border-slate-700 pb-4">
                         <h2 class="text-lg font-black text-white">حسابات مندوب المحافظات</h2>
-                        <button onclick="document.getElementById('govPaymentModal').classList.remove('hidden')" class="px-5 py-2.5 bg-safira-600 text-white font-bold rounded-xl text-xs">تسليم نقدية الشركة</button>
+                        <button onclick="openGovPaymentModal()" class="px-5 py-2.5 bg-safira-600 text-white font-bold rounded-xl text-xs">تسليم نقدية الشركة</button>
                     </div>
                 `;
             } else {
                 banner.innerHTML = `
                     <div class="flex justify-between items-center border-b border-slate-700 pb-4">
                         <h2 class="text-lg font-black text-white">حسابات مندوب القاهرة الكبرى</h2>
-                        <button onclick="document.getElementById('cairoDuesModal').classList.remove('hidden')" class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs">طلب صرف المستحقات</button>
+                        <button onclick="openCairoDuesModal()" class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs">طلب صرف المستحقات</button>
                     </div>
                 `;
             }
         }
-// 1. فتح نافذة تسليم نقدية مندوب المحافظات مع التحقق من الرصيد والطلبات المعلقة
+
+        // --- القيود الصارمة لطلبات الصرف والتسويات للمندوب ---
+
         function openGovPaymentModal() {
             let cPayouts = JSON.parse(localStorage.getItem('safira_c_payouts')) || [];
             const existing = cPayouts.find(p => p.courierId === currentCourier.name);
             
             if (existing) {
-                showToast("عذراً، يوجد بالفعل طلب تسوية معلق لهذا المندوب بانتظار الاعتماد ولا يمكن تقديم طلب جديد حالياً!", "error");
+                showToast("عذراً، لديك بالفعل طلب تسوية معلق قيد المراجعة لدى الإدارة ولا يمكنك تقديم طلب جديد حالياً!", "error");
                 return;
             }
 
-            const availableAmount = 2500; // يتم حسابه ديناميكياً أو افتراضياً
+            const availableAmount = 2500; // يتم حسابه من الرصيد الفعلي للمندوب
             if (availableAmount <= 0) {
-                showToast("لا توجد مبالغ مالية متاحة للتسوية حالياً!", "error");
+                showToast("عذراً، لا توجد مبالغ مالية متاحة للتسوية حالياً (الرصيد <= 0)", "error");
                 return;
             }
 
@@ -632,12 +634,10 @@
             document.getElementById('govPaymentModal').classList.remove('hidden');
         }
 
-        // إرسال تسوية مندوب المحافظات بالقيود الصارمة
         function submitGovCompanyPayment() {
             let cPayouts = JSON.parse(localStorage.getItem('safira_c_payouts')) || [];
-            
             if (cPayouts.some(p => p.courierId === currentCourier.name)) {
-                showToast("عذراً، لديك طلب معلق بالفعل قيد المراجعة!", "error");
+                showToast("عذراً، يوجد طلب معلق بالفعل!", "error");
                 closeGovPaymentModal();
                 return;
             }
@@ -662,7 +662,6 @@
             closeGovPaymentModal();
         }
 
-        // 2. فتح نافذة طلب مستحقات مندوب القاهرة مع منع التكرار والتحقق من الرصيد
         function openCairoDuesModal() {
             let mPayouts = JSON.parse(localStorage.getItem('safira_m_payouts')) || [];
             const existing = mPayouts.find(p => p.merchantId === currentCourier.name);
@@ -672,9 +671,9 @@
                 return;
             }
 
-            const availableDues = 1800; // المستحقات الفعلية للمندوب
+            const availableDues = 1800; // المستحقات الفعلية المتاحة للمندوب
             if (availableDues <= 0) {
-                showToast("لا توجد مستحقات مالية متاحة للصرف حالياً!", "error");
+                showToast("عذراً، لا توجد مستحقات مالية متاحة للصرف حالياً (الرصيد <= 0)", "error");
                 return;
             }
 
@@ -682,10 +681,8 @@
             document.getElementById('cairoDuesModal').classList.remove('hidden');
         }
 
-        // إرسال طلب صرف المستحقات لمندوب القاهرة
         function submitCairoDuesRequest() {
             let mPayouts = JSON.parse(localStorage.getItem('safira_m_payouts')) || [];
-            
             if (mPayouts.some(p => p.merchantId === currentCourier.name)) {
                 showToast("عذراً، يوجد طلب معلق بالفعل!", "error");
                 closeCairoDuesModal();
@@ -710,11 +707,11 @@
             closeCairoDuesModal();
         }
 
-        // دوال الإشعارات والتحكم المعتادة
         function closeGovPaymentModal() { document.getElementById('govPaymentModal').classList.add('hidden'); }
         function closeCairoDuesModal() { document.getElementById('cairoDuesModal').classList.add('hidden'); }
         function openNotificationModal() { document.getElementById('notificationModal').classList.remove('hidden'); }
         function closeNotificationModal() { document.getElementById('notificationModal').classList.add('hidden'); }
+        
         function renderNotifications() {
             const container = document.getElementById('notificationListContainer');
             container.innerHTML = notifications.map(n => `<div class="bg-slate-50 p-3 rounded-xl border text-xs"><b class="block text-slate-800">${n.title}</b>${n.message}</div>`).join('');
