@@ -244,9 +244,10 @@
             <div id="financialBannerContainer" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-md flex flex-col gap-6"></div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col gap-4">
-                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                <!-- تم تصحيح العنصر هنا من h3 إلى h2 لضمان التسلسل الهيكلي الصحيح لمعايير W3C -->
+                <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-file-invoice-dollar text-safira-600"></i> تفاصيل العمليات المالية المكتملة
-                </h3>
+                </h2>
                 <div class="overflow-x-auto">
                     <table class="w-full text-right border-collapse text-sm">
                         <thead>
@@ -259,9 +260,7 @@
                                 <th class="p-3">مستحقات الشركة</th>
                             </tr>
                         </thead>
-                        <tbody id="financialTableBody" class="divide-y divide-slate-100">
-                            <!-- جدول العمليات المالية المكتملة المحدث -->
-                        </tbody>
+                        <tbody id="financialTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -609,7 +608,6 @@
             const banner = document.getElementById('financialBannerContainer');
             const tableBody = document.getElementById('financialTableBody');
             
-            // تعبئة سجل العمليات المالية المكتملة المحدث
             const deliveredOrders = ordersData.filter(o => o.status === 'تم التسليم');
             if (deliveredOrders.length === 0) {
                 tableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">لا توجد عمليات مالية مكتملة بعد</td></tr>`;
