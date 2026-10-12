@@ -62,7 +62,7 @@
                 <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول 
             </button>
             <div class="text-center">
-                <span class="text-[11px] text-slate-400">للاختبار السريع استخدم: <strong class="text-slate-600">ahmed_gov</strong> أو <strong class="text-slate-600">cairo_karim</strong> (كلمة المرور: 123456)</span>
+                <div class="text-[11px] text-slate-400">للاختبار السريع استخدم: <strong class="text-slate-600">ahmed_gov</strong> أو <strong class="text-slate-600">cairo_karim</strong> (كلمة المرور: 123456)</div>
             </div>
         </div>
     </div>
@@ -75,7 +75,7 @@
                     <i class="fa-solid fa-truck-fast text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-black tracking-wide text-white">سفيرا لوجستيك <span class="text-safira-500 text-sm font-semibold">| بوابة المندوب</span></h1>
+                    <div class="text-xl font-black tracking-wide text-white">سفيرا لوجستيك <span class="text-safira-500 text-sm font-semibold">| بوابة المندوب</span></div>
                     <div class="flex items-center gap-2 text-xs text-slate-400">
                         <span id="liveTrackingBadge" class="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold text-[10px] border border-emerald-500/30">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> التتبع الحي مفعل تلقائياً
@@ -283,7 +283,8 @@
             </div>
         </div>
     </div>
-<div id="govPaymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+
+    <div id="govPaymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
@@ -305,7 +306,6 @@
                     <span id="modalGovTotalDues" class="text-safira-600 text-base">2,500 ج.م</span>
                 </div>
 
-                <!-- حقول إدخال وتوزيع المبالغ -->
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="text-[11px] font-bold text-slate-600 mb-1 block">مبلغ كاش:</label>
@@ -332,6 +332,7 @@
             </div>
         </div>
     </div>
+
     <div id="cairoDuesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -379,9 +380,7 @@
 
     <div id="toastContainer" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2"></div>
 
-    <!-- كود الجافاسكريبت المجمع والمنظم -->
     <script>
-        // قاعدة بيانات المندوبين المسجلين من قِبل الإدارة
         const registeredCouriers = {
             "ahmed_gov": {
                 name: "أحمد محمود",
@@ -415,7 +414,6 @@
 
         let activePostponeOrderId = null;
 
-        // دالة الاتصال بالسيرفر الأساسي على Railway
         const API_BASE_URL = 'https://safira-logistic-production.up.railway.app/';
         
         window.apiRequest = async function(endpoint, options = {}) {
@@ -434,7 +432,6 @@
             }
         }
 
-        // دالة تسجيل الدخول
         function handleLogin() {
             const userBox = document.getElementById('loginUsername').value.trim();
             const passBox = document.getElementById('loginPassword').value.trim();
@@ -625,8 +622,7 @@
             }
         }
 
-        // --- القيود الصارمة لطلبات الصرف والتسويات للمندوب ---
-const requiredGovTotal = 2500; // الإجمالي الافتراضي أو المحسوب للمندوب
+        const requiredGovTotal = 2500;
 
         function openGovPaymentModal() {
             let cPayouts = JSON.parse(localStorage.getItem('safira_c_payouts')) || [];
@@ -642,7 +638,6 @@ const requiredGovTotal = 2500; // الإجمالي الافتراضي أو ال�
                 return;
             }
 
-            // تصفير الحقول عند الفتح
             document.getElementById('splitCashAmount').value = '';
             document.getElementById('splitWalletAmount').value = '';
             document.getElementById('splitInstapayAmount').value = '';
@@ -653,7 +648,6 @@ const requiredGovTotal = 2500; // الإجمالي الافتراضي أو ال�
             document.getElementById('govPaymentModal').classList.remove('hidden');
         }
 
-        // دالة حساب مجموع المبالغ المقسمة لتنبيه المندوب
         function calculateSplitTotal() {
             const cash = Number(document.getElementById('splitCashAmount').value) || 0;
             const wallet = Number(document.getElementById('splitWalletAmount').value) || 0;
@@ -672,7 +666,6 @@ const requiredGovTotal = 2500; // الإجمالي الافتراضي أو ال�
             }
         }
 
-        // إرسال تسوية مندوب المحافظات مع تفاصيل التقسيم
         function submitGovCompanyPayment() {
             let cPayouts = JSON.parse(localStorage.getItem('safira_c_payouts')) || [];
             if (cPayouts.some(p => p.courierId === currentCourier.name)) {
@@ -699,7 +692,7 @@ const requiredGovTotal = 2500; // الإجمالي الافتراضي أو ال�
                 name: currentCourier.name,
                 zone: currentCourier.zone,
                 amount: requiredGovTotal,
-                breakdown: { cash, wallet, instapay }, // تفاصيل التقسيم لتظهر للإدارة
+                breakdown: { cash, wallet, instapay },
                 receiver: receiver,
                 date: new Date().toLocaleString()
             });
@@ -707,6 +700,59 @@ const requiredGovTotal = 2500; // الإجمالي الافتراضي أو ال�
             localStorage.setItem('safira_c_payouts', JSON.stringify(cPayouts));
             showToast("تم إرسال طلب توريد النقدية المقسمة بنجاح إلى الإدارة!", "success");
             closeGovPaymentModal();
+        }
+
+        function closeGovPaymentModal() {
+            document.getElementById('govPaymentModal').classList.add('hidden');
+        }
+
+        function closeCairoDuesModal() {
+            document.getElementById('cairoDuesModal').classList.add('hidden');
+        }
+
+        function openCairoDuesModal() {
+            document.getElementById('cairoDuesModal').classList.remove('hidden');
+        }
+
+        function submitCairoDuesRequest() {
+            showToast("تم إرسال طلب صرف المستحقات بنجاح للإدارة!", "success");
+            closeCairoDuesModal();
+        }
+
+        function openNotificationModal() {
+            document.getElementById('notificationModal').classList.remove('hidden');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notificationModal').classList.add('hidden');
+        }
+
+        function renderNotifications() {
+            const container = document.getElementById('notificationListContainer');
+            container.innerHTML = '';
+            if (notifications.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-400 text-center p-4">لا توجد إشعارات جديدة</div>`;
+                return;
+            }
+            notifications.forEach(n => {
+                const div = document.createElement('div');
+                div.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex flex-col gap-1";
+                div.innerHTML = `<strong class="text-slate-900">${n.title}</strong><span class="text-slate-600">${n.message}</span><span class="text-[10px] text-slate-400">${n.time}</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const bgClass = type === 'error' ? 'bg-rose-600' : (type === 'warning' ? 'bg-amber-600' : 'bg-emerald-600');
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-xl text-xs font-bold shadow-lg transition-all duration-300 transform translate-y-2`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
     </script>
 </body>
