@@ -33,7 +33,7 @@
 </head>
 <body class="bg-slate-900 text-slate-800 font-cairo min-h-screen flex flex-col">
 
-    <!-- عنوان رئيسي متوافق مع معايير W3C -->
+    <!-- عنوان رئيسي لهيكلة الصفحة متوافق مع معايير W3C -->
     <h1 class="sr-only">لوحة تحكم تطبيق المندوب الذكي - سفيرا لوجستيك</h1>
 
     <div id="loginScreen" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -42,17 +42,17 @@
                 <div class="w-16 h-16 bg-safira-600 text-white rounded-2xl shadow-lg flex items-center justify-center text-2xl font-black">
                     <i class="fa-solid fa-truck-fast"></i>
                 </div>
-                <h2 class="text-2xl font-black text-slate-900">سفيرا لوجستيك</h2>
+                <div class="text-2xl font-black text-slate-900">سفيرا لوجستيك</div>
                 <p class="text-xs text-slate-500">بوابة تسجيل دخول المندوبين (معتمدة من الإدارة)</p>
             </div>
 
             <div class="flex flex-col gap-4">
                 <div>
-                    <label class="text-xs font-bold text-slate-700 mb-1 block">اسم المستخدم أو كود المندوب:</label>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block" for="loginUsername">اسم المستخدم أو كود المندوب:</label>
                     <input type="text" id="loginUsername" placeholder="مثال: ahmed_gov أو cairo_karim" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-safira-500 focus:outline-none font-semibold">
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-slate-700 mb-1 block">كلمة المرور الخاصة:</label>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block" for="loginPassword">كلمة المرور الخاصة:</label>
                     <input type="password" id="loginPassword" placeholder="••••••••" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-safira-500 focus:outline-none font-semibold">
                 </div>
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-800 flex items-start gap-2">
@@ -78,10 +78,10 @@
                     <i class="fa-solid fa-truck-fast text-2xl"></i>
                 </div>
                 <div>
-                    <div class="text-xl font-black tracking-wide text-white">سفيرا لوجستيك <span class="text-safira-500 text-sm font-semibold">| بوابة المندوب</span></div>
+                    <div class="text-xl font-black tracking-wide text-white">سفيرا لوجستيك <span class="text-safira-500 text-sm font-semibold">| بوابة المندوب المحدثة</span></div>
                     <div class="flex items-center gap-2 text-xs text-slate-400">
                         <span id="liveTrackingBadge" class="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold text-[10px] border border-emerald-500/30">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> التتبع الحي مفعل تلقائياً
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> التتبع الحي مفعل تلقائياً (GPS Heartbeat)
                         </span>
                     </div>
                 </div>
@@ -91,8 +91,8 @@
                 <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 shadow-sm">
                     <div class="w-9 h-9 rounded-full bg-safira-500 text-white flex items-center justify-center font-bold text-sm" id="courierAvatar">م</div>
                     <div class="text-right">
-                        <p class="text-xs font-bold text-white" id="courierNameDisplay">اسم المندوب</p>
-                        <p class="text-[11px] text-safira-400 font-semibold" id="courierZoneDisplay">محافظة التعيين: الإسكندرية</p>
+                        <div class="text-xs font-bold text-white" id="courierNameDisplay">اسم المندوب</div>
+                        <div class="text-[11px] text-safira-400 font-semibold" id="courierZoneDisplay">محافظة التعيين: الإسكندرية</div>
                     </div>
                 </div>
 
@@ -107,12 +107,11 @@
         </div>
     </header>
 
-    <!-- تم استبدال section بـ div لمنع تحذير W3C -->
     <div id="statsSection" class="bg-white border-b border-slate-200 shadow-sm py-4 px-4 hidden">
         <div class="max-w-7xl mx-auto">
             <div class="text-xs font-bold text-slate-400 mb-2 flex items-center justify-between">
                 <span><i class="fa-solid fa-chart-pie ml-1 text-safira-600"></i> ملخص حالات الأوردرات اليومية</span>
-                <span id="lastUpdatedTime" class="text-[11px] text-slate-400">آخر تحديث: منذ ثوانٍ (موقع GPS متصل)</span>
+                <span id="lastUpdatedTime" class="text-[11px] text-slate-400">آخر تحديث: منذ ثوانٍ (متصل بالخادم)</span>
             </div>
             
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 text-center">
@@ -214,7 +213,7 @@
                             <i class="fa-solid fa-box-arrow-down text-lg"></i>
                         </div>
                         <div>
-                            <h2 class="text-base font-bold text-slate-800">الأمر الأول: تأكيد استلام الأوردرات من المخزن</h2>
+                            <div class="text-base font-bold text-slate-800">الأمر الأول: تأكيد استلام الأوردرات من المخزن</div>
                             <p class="text-xs text-slate-500">الأوردرات الجديدة المخصصة لمحافظتك من الإدارة</p>
                         </div>
                     </div>
@@ -230,7 +229,7 @@
                             <i class="fa-solid fa-box-arrow-up text-lg"></i>
                         </div>
                         <div>
-                            <h2 class="text-base font-bold text-slate-800">الأمر الثاني: تسليم المرتجعات والرفض للمخزن</h2>
+                            <div class="text-base font-bold text-slate-800">الأمر الثاني: تسليم المرتجعات والرفض للمخزن</div>
                             <p class="text-xs text-slate-500">تسليم الأوردرات المرتجعة لمخزن المحافظة</p>
                         </div>
                     </div>
@@ -260,7 +259,9 @@
                                 <th class="p-3">مستحقات الشركة</th>
                             </tr>
                         </thead>
-                        <tbody id="financialTableBody" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="financialTableBody" class="divide-y divide-slate-100">
+                            <!-- جدول العمليات المالية المكتملة المحدث -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -271,14 +272,14 @@
     <div id="postponeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                <div class="font-bold text-slate-800 text-base flex items-center gap-2">
                     <i class="fa-solid fa-calendar-days text-purple-600"></i> تحديد تاريخ التأجيل للأوردر
-                </h3>
+                </div>
                 <button onclick="closePostponeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <p class="text-xs text-slate-500">اختر تاريخ التأجيل المطلوب. إذا تجاوز التاريخ أسبوعاً سيتحول آلياً إلى <span class="text-red-600 font-bold">مرتجع</span>.</p>
             <div class="flex flex-col gap-2">
-                <label class="text-xs font-bold text-slate-700">تاريخ التأجيل المستهدف:</label>
+                <label class="text-xs font-bold text-slate-700" for="postponeDateInput">تاريخ التأجيل المستهدف:</label>
                 <input type="date" id="postponeDateInput" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-purple-500 focus:outline-none">
             </div>
             <div class="flex items-center justify-end gap-3 pt-2">
@@ -291,14 +292,14 @@
     <div id="govPaymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                <div class="font-bold text-slate-800 text-base flex items-center gap-2">
                     <i class="fa-solid fa-hand-holding-dollar text-safira-600"></i> تسليم نقدية الشركة (توزيع المبالغ)
-                </h3>
+                </div>
                 <button onclick="closeGovPaymentModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="flex flex-col gap-3">
                 <div>
-                    <label class="text-xs font-bold text-slate-700 mb-1 block">اسم المسؤول / المستلم للإدارة:</label>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block" for="govReceiverSelect">اسم المسؤول / المستلم للإدارة:</label>
                     <select id="govReceiverSelect" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
                         <option value="أستاذ محمود السيد (مدير الخزينة)">أستاذ محمود السيد (مدير الخزينة)</option>
                         <option value="أستاذة مريم أحمد (مشرفة الحسابات)">أستاذة مريم أحمد (مشرفة الحسابات)</option>
@@ -312,15 +313,15 @@
 
                 <div class="grid grid-cols-3 gap-2">
                     <div>
-                        <label class="text-[11px] font-bold text-slate-600 mb-1 block">مبلغ كاش:</label>
+                        <label class="text-[11px] font-bold text-slate-600 mb-1 block" for="splitCashAmount">مبلغ كاش:</label>
                         <input type="number" id="splitCashAmount" placeholder="0" oninput="calculateSplitTotal()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="text-[11px] font-bold text-slate-600 mb-1 block">مبلغ محفظة:</label>
+                        <label class="text-[11px] font-bold text-slate-600 mb-1 block" for="splitWalletAmount">مبلغ محفظة:</label>
                         <input type="number" id="splitWalletAmount" placeholder="0" oninput="calculateSplitTotal()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="text-[11px] font-bold text-slate-600 mb-1 block">مبلغ انستا باي:</label>
+                        <label class="text-[11px] font-bold text-slate-600 mb-1 block" for="splitInstapayAmount">مبلغ انستا باي:</label>
                         <input type="number" id="splitInstapayAmount" placeholder="0" oninput="calculateSplitTotal()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-safira-500 focus:outline-none">
                     </div>
                 </div>
@@ -340,15 +341,15 @@
     <div id="cairoDuesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                <div class="font-bold text-slate-800 text-base flex items-center gap-2">
                     <i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> طلب صرف المستحقات (مندوب القاهرة)
-                </h3>
+                </div>
                 <button onclick="closeCairoDuesModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <p class="text-xs text-slate-500">مندوب القاهرة يورد المبلغ كاملاً ويطلب صرف عمولته:</p>
             <div class="flex flex-col gap-3">
                 <div>
-                    <label class="text-xs font-bold text-slate-700 mb-1 block">طريقة الصرف:</label>
+                    <label class="text-xs font-bold text-slate-700 mb-1 block" for="cairoPayoutMethod">طريقة الصرف:</label>
                     <select id="cairoPayoutMethod" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         <option value="انستا باي">انستا باي (InstaPay)</option>
                         <option value="محفظة">محفظة إلكترونية</option>
@@ -370,9 +371,9 @@
     <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                <div class="font-bold text-slate-800 text-base flex items-center gap-2">
                     <i class="fa-solid fa-bell text-safira-600"></i> إشعارات الإدارة
-                </h3>
+                </div>
                 <button onclick="closeNotificationModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="flex flex-col gap-3 max-h-80 overflow-y-auto" id="notificationListContainer"></div>
@@ -607,19 +608,39 @@
         function renderFinancials() {
             const banner = document.getElementById('financialBannerContainer');
             const tableBody = document.getElementById('financialTableBody');
-            tableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">لا توجد عمليات مالية بعد</td></tr>`;
+            
+            // تعبئة سجل العمليات المالية المكتملة المحدث
+            const deliveredOrders = ordersData.filter(o => o.status === 'تم التسليم');
+            if (deliveredOrders.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">لا توجد عمليات مالية مكتملة بعد</td></tr>`;
+            } else {
+                tableBody.innerHTML = '';
+                deliveredOrders.forEach(o => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition";
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold text-slate-900">${o.waybill}</td>
+                        <td class="p-3 text-slate-700">${o.customerName}</td>
+                        <td class="p-3"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">تم التسليم</span></td>
+                        <td class="p-3 font-bold text-slate-900">${o.amount.toLocaleString()} ج.م</td>
+                        <td class="p-3 font-bold text-safira-600">${o.shippingFee || 60} ج.م</td>
+                        <td class="p-3 font-bold text-blue-600">${(o.amount - (o.shippingFee || 60)).toLocaleString()} ج.م</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
 
             if (currentCourier && currentCourier.type === 'governorates') {
                 banner.innerHTML = `
                     <div class="flex justify-between items-center border-b border-slate-700 pb-4">
-                        <h2 class="text-lg font-black text-white">حسابات مندوب المحافظات</h2>
+                        <div class="text-lg font-black text-white">حسابات مندوب المحافظات</div>
                         <button onclick="openGovPaymentModal()" class="px-5 py-2.5 bg-safira-600 text-white font-bold rounded-xl text-xs">تسليم نقدية الشركة</button>
                     </div>
                 `;
             } else {
                 banner.innerHTML = `
                     <div class="flex justify-between items-center border-b border-slate-700 pb-4">
-                        <h2 class="text-lg font-black text-white">حسابات مندوب القاهرة الكبرى</h2>
+                        <div class="text-lg font-black text-white">حسابات مندوب القاهرة الكبرى</div>
                         <button onclick="openCairoDuesModal()" class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs">طلب صرف المستحقات</button>
                     </div>
                 `;
